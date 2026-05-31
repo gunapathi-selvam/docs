@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FORGE — Digital Fabrication Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- WebGL Canvas -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Cursor -->
+  <div class="cursor-outer" id="cursor-outer"></div>
+  <div class="cursor-inner" id="cursor-inner"></div>
+
+  <!-- Noise overlay -->
+  <div class="noise-overlay"></div>
+
+  <!-- Navigation -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <span class="logo-mark">F</span>
+      <span class="logo-text">ORGE</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#services" data-nav>Services</a></li>
+      <li><a href="#projects" data-nav>Projects</a></li>
+      <li><a href="#about" data-nav>About</a></li>
+      <li><a href="#contact" data-nav>Contact</a></li>
+    </ul>
+    <button class="nav-cta">START A PROJECT <span class="arrow">→</span></button>
+    <button class="nav-burger" id="nav-burger" aria-label="Menu">
+      <span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Mobile menu -->
+  <div class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="#services" data-mobile-nav>Services</a></li>
+      <li><a href="#projects" data-mobile-nav>Projects</a></li>
+      <li><a href="#about" data-mobile-nav>About</a></li>
+      <li><a href="#contact" data-mobile-nav>Contact</a></li>
+    </ul>
+  </div>
+
+  <!-- ─── HERO ─── -->
+  <section id="hero">
+    <div class="hero-label">
+      <span class="dot"></span>
+      <span>DIGITAL FABRICATION STUDIO — EST. 2024</span>
+    </div>
+    <div class="hero-headline">
+      <div class="line-wrap"><span class="line" data-hero-line>WE BUILD</span></div>
+      <div class="line-wrap"><span class="line gradient-text" data-hero-line>DIGITAL</span></div>
+      <div class="line-wrap"><span class="line" data-hero-line>MACHINES</span></div>
+    </div>
+    <p class="hero-sub" data-hero-sub>
+      High-performance digital products forged in the intersection<br/>
+      of engineering precision and raw creative force.
+    </p>
+    <div class="hero-actions">
+      <button class="btn-primary" data-hero-btn>
+        <span>VIEW OUR WORK</span>
+        <div class="btn-shimmer"></div>
+      </button>
+      <button class="btn-ghost" data-hero-btn>
+        <span>↓ SCROLL</span>
+      </button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat" data-hero-stat>
+        <span class="stat-num" data-count="120">0</span><span>+</span>
+        <p>Projects Shipped</p>
+      </div>
+      <div class="stat" data-hero-stat>
+        <span class="stat-num" data-count="8">0</span><span>+</span>
+        <p>Years Forging</p>
+      </div>
+      <div class="stat" data-hero-stat>
+        <span class="stat-num" data-count="40">0</span><span>+</span>
+        <p>Global Clients</p>
+      </div>
+    </div>
+    <div class="hero-scroll-hint">
+      <div class="scroll-line"></div>
+      <span>SCROLL</span>
+    </div>
+  </section>
+
+  <!-- ─── MARQUEE ─── -->
+  <div class="marquee-wrapper">
+    <div class="marquee-track">
+      <span>WEB DESIGN</span><span class="sep">✦</span>
+      <span>3D EXPERIENCES</span><span class="sep">✦</span>
+      <span>MOTION DESIGN</span><span class="sep">✦</span>
+      <span>BRAND IDENTITY</span><span class="sep">✦</span>
+      <span>CREATIVE TECH</span><span class="sep">✦</span>
+      <span>WEBGL SHADERS</span><span class="sep">✦</span>
+      <span>WEB DESIGN</span><span class="sep">✦</span>
+      <span>3D EXPERIENCES</span><span class="sep">✦</span>
+      <span>MOTION DESIGN</span><span class="sep">✦</span>
+      <span>BRAND IDENTITY</span><span class="sep">✦</span>
+      <span>CREATIVE TECH</span><span class="sep">✦</span>
+      <span>WEBGL SHADERS</span><span class="sep">✦</span>
+    </div>
+  </div>
+
+  <!-- ─── SERVICES ─── -->
+  <section id="services">
+    <div class="section-header">
+      <span class="section-tag" data-reveal>[ 01 — CAPABILITIES ]</span>
+      <h2 data-reveal>What We<br/><em>Forge</em></h2>
+    </div>
+    <div class="services-grid">
+      <div class="service-card" data-service>
+        <div class="service-number">01</div>
+        <div class="service-icon">
+          <svg viewBox="0 0 48 48" fill="none"><path d="M6 8h36v28H6z" stroke="currentColor" stroke-width="1.5"/><path d="M14 36v4M34 36v4M2 36h44" stroke="currentColor" stroke-width="1.5"/><path d="M16 20h16M24 14v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Digital Experience<br/>Design</h3>
+        <p>Immersive web experiences that blur the boundary between digital and physical. Custom WebGL environments with real-time rendering.</p>
+        <div class="service-tags">
+          <span>WebGL</span><span>Three.js</span><span>GSAP</span>
+        </div>
+        <div class="service-hover-line"></div>
+      </div>
+      <div class="service-card" data-service>
+        <div class="service-number">02</div>
+        <div class="service-icon">
+          <svg viewBox="0 0 48 48" fill="none"><rect x="8" y="8" width="32" height="32" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M16 24l6 6 10-12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Brand Identity &amp;<br/>Visual Systems</h3>
+        <p>Strategic brand architecture from logo to motion. Cohesive visual languages built for premium digital environments.</p>
+        <div class="service-tags">
+          <span>Branding</span><span>Motion</span><span>Systems</span>
+        </div>
+        <div class="service-hover-line"></div>
+      </div>
+      <div class="service-card" data-service>
+        <div class="service-number">03</div>
+        <div class="service-icon">
+          <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="16" stroke="currentColor" stroke-width="1.5"/><path d="M24 8v32M8 24h32" stroke="currentColor" stroke-width="1.5"/><ellipse cx="24" cy="24" rx="8" ry="16" stroke="currentColor" stroke-width="1.5"/></svg>
+        </div>
+        <h3>3D &amp; Spatial<br/>Computing</h3>
+        <p>Next-gen spatial interfaces for AR/VR and the emerging web. Real-time 3D built for production performance at scale.</p>
+        <div class="service-tags">
+          <span>R3F</span><span>WebXR</span><span>WASM</span>
+        </div>
+        <div class="service-hover-line"></div>
+      </div>
+      <div class="service-card" data-service>
+        <div class="service-number">04</div>
+        <div class="service-icon">
+          <svg viewBox="0 0 48 48" fill="none"><path d="M8 40V28l16-20 16 20v12" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M18 40v-10h12v10" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Frontend<br/>Engineering</h3>
+        <p>Pixel-perfect implementation with obsessive performance. From design handoff to production deployment, zero compromises.</p>
+        <div class="service-tags">
+          <span>React</span><span>Next.js</span><span>TypeScript</span>
+        </div>
+        <div class="service-hover-line"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FEATURED WORK ─── -->
+  <section id="projects">
+    <div class="section-header">
+      <span class="section-tag" data-reveal>[ 02 — SELECTED WORK ]</span>
+      <h2 data-reveal>Recent<br/><em>Projects</em></h2>
+    </div>
+    <div class="projects-list">
+
+      <article class="project-item" data-project>
+        <div class="project-meta">
+          <span class="project-index">001</span>
+          <span class="project-year">2024</span>
+        </div>
+        <div class="project-content">
+          <h3 class="project-title">NEXUS PLATFORM</h3>
+          <div class="project-tags-row">
+            <span>SaaS Dashboard</span>
+            <span>Design System</span>
+            <span>React</span>
+          </div>
+        </div>
+        <div class="project-image-wrap">
+          <div class="project-image" data-project-img style="--hue: 220deg"></div>
+        </div>
+        <a href="#" class="project-link" aria-label="View Nexus Platform">
+          <span>VIEW</span>
+          <svg viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </a>
+      </article>
+
+      <article class="project-item" data-project>
+        <div class="project-meta">
+          <span class="project-index">002</span>
+          <span class="project-year">2024</span>
+        </div>
+        <div class="project-content">
+          <h3 class="project-title">VOID COLLECTIVE</h3>
+          <div class="project-tags-row">
+            <span>WebGL</span>
+            <span>3D Art</span>
+            <span>GLSL</span>
+          </div>
+        </div>
+        <div class="project-image-wrap">
+          <div class="project-image" data-project-img style="--hue: 280deg"></div>
+        </div>
+        <a href="#" class="project-link" aria-label="View Void Collective">
+          <span>VIEW</span>
+          <svg viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </a>
+      </article>
+
+      <article class="project-item" data-project>
+        <div class="project-meta">
+          <span class="project-index">003</span>
+          <span class="project-year">2023</span>
+        </div>
+        <div class="project-content">
+          <h3 class="project-title">IRON PROTOCOL</h3>
+          <div class="project-tags-row">
+            <span>Brand Identity</span>
+            <span>Motion</span>
+            <span>Web</span>
+          </div>
+        </div>
+        <div class="project-image-wrap">
+          <div class="project-image" data-project-img style="--hue: 30deg"></div>
+        </div>
+        <a href="#" class="project-link" aria-label="View Iron Protocol">
+          <span>VIEW</span>
+          <svg viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </a>
+      </article>
+
+      <article class="project-item" data-project>
+        <div class="project-meta">
+          <span class="project-index">004</span>
+          <span class="project-year">2023</span>
+        </div>
+        <div class="project-content">
+          <h3 class="project-title">STEELFRAME AI</h3>
+          <div class="project-tags-row">
+            <span>AI/ML Interface</span>
+            <span>Data Viz</span>
+            <span>Next.js</span>
+          </div>
+        </div>
+        <div class="project-image-wrap">
+          <div class="project-image" data-project-img style="--hue: 160deg"></div>
+        </div>
+        <a href="#" class="project-link" aria-label="View Steelframe AI">
+          <span>VIEW</span>
+          <svg viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </a>
+      </article>
+
+    </div>
+    <div class="projects-footer">
+      <a href="#" class="all-work-link">
+        SEE ALL PROJECTS
+        <span class="link-line"></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ─── ABOUT ─── -->
+  <section id="about">
+    <div class="about-inner">
+      <div class="about-left">
+        <span class="section-tag" data-reveal>[ 03 — ABOUT ]</span>
+        <h2 data-reveal>Built in the<br/><em>workshop,<br/>not the cloud.</em></h2>
+        <div class="about-forge-visual">
+          <div class="forge-ring ring-1"></div>
+          <div class="forge-ring ring-2"></div>
+          <div class="forge-ring ring-3"></div>
+          <div class="forge-core"></div>
+          <div class="spark" style="--i:1"></div>
+          <div class="spark" style="--i:2"></div>
+          <div class="spark" style="--i:3"></div>
+          <div class="spark" style="--i:4"></div>
+          <div class="spark" style="--i:5"></div>
+          <div class="spark" style="--i:6"></div>
+        </div>
+      </div>
+      <div class="about-right">
+        <p class="about-lead" data-reveal>
+          We are a small, ruthlessly focused creative studio. No account managers.
+          No bloated teams. Just obsessive builders who care more about the craft
+          than the invoice.
+        </p>
+        <p class="about-body" data-reveal>
+          Every project goes through our foundry — a process of intense iteration,
+          prototype burning, and precision finishing. We don't ship until it feels
+          inevitable. That industrial discipline is what separates FORGE from the noise.
+        </p>
+        <div class="about-pillars">
+          <div class="pillar" data-reveal>
+            <span class="pillar-icon">⬡</span>
+            <div>
+              <strong>Precision</strong>
+              <p>Sub-pixel obsession across every breakpoint.</p>
+            </div>
+          </div>
+          <div class="pillar" data-reveal>
+            <span class="pillar-icon">⬡</span>
+            <div>
+              <strong>Performance</strong>
+              <p>100 Lighthouse, always. Not negotiable.</p>
+            </div>
+          </div>
+          <div class="pillar" data-reveal>
+            <span class="pillar-icon">⬡</span>
+            <div>
+              <strong>Permanence</strong>
+              <p>Work that outlives the trend cycle.</p>
+            </div>
+          </div>
+        </div>
+        <a href="#contact" class="btn-primary inline-btn">
+          <span>LET'S TALK</span>
+          <div class="btn-shimmer"></div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── PROCESS ─── -->
+  <section id="process">
+    <div class="section-header">
+      <span class="section-tag" data-reveal>[ 04 — PROCESS ]</span>
+      <h2 data-reveal>How We<br/><em>Operate</em></h2>
+    </div>
+    <div class="process-steps">
+      <div class="process-step" data-step>
+        <div class="step-num">01</div>
+        <div class="step-line"></div>
+        <h4>IGNITE</h4>
+        <p>Deep-dive discovery. We understand your constraints, ambitions, and audience before a single pixel is touched.</p>
+      </div>
+      <div class="process-step" data-step>
+        <div class="step-num">02</div>
+        <div class="step-line"></div>
+        <h4>FORGE</h4>
+        <p>Rapid ideation meets engineering reality. We prototype in browser, not Figma. What you see works.</p>
+      </div>
+      <div class="process-step" data-step>
+        <div class="step-num">03</div>
+        <div class="step-line"></div>
+        <h4>TEMPER</h4>
+        <p>Stress-tested across devices, browsers, and edge cases. We harden the work until it's bulletproof.</p>
+      </div>
+      <div class="process-step" data-step>
+        <div class="step-num">04</div>
+        <div class="step-line"></div>
+        <h4>SHIP</h4>
+        <p>Zero-compromise deployment with full performance auditing. Your product hits hard from day one.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── TESTIMONIALS ─── -->
+  <section id="testimonials">
+    <div class="section-header">
+      <span class="section-tag" data-reveal>[ 05 — CLIENTS ]</span>
+      <h2 data-reveal>From the<br/><em>Foundry Floor</em></h2>
+    </div>
+    <div class="testimonials-track-wrap">
+      <div class="testimonials-track" id="testimonials-track">
+        <div class="testimonial-card">
+          <div class="tquote">"FORGE didn't just build our site — they reimagined our entire digital presence. The WebGL work alone stopped our bounce rate in its tracks."</div>
+          <div class="tclient">
+            <div class="tavatar" style="--c:#6c63ff">N</div>
+            <div>
+              <strong>Nicolas Ray</strong>
+              <span>CEO, Nexus Platform</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="tquote">"The attention to craft is unlike any studio we've worked with. Every microinteraction felt intentional. Our users noticed immediately."</div>
+          <div class="tclient">
+            <div class="tavatar" style="--c:#ff6b35">S</div>
+            <div>
+              <strong>Sofia Mendez</strong>
+              <span>CPO, Void Collective</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="tquote">"Three agencies before FORGE couldn't crack our brand problem. They solved it in two weeks and shipped a website that made our investors do a double take."</div>
+          <div class="tclient">
+            <div class="tavatar" style="--c:#00d4aa">K</div>
+            <div>
+              <strong>Kai Tanaka</strong>
+              <span>Founder, Iron Protocol</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="tquote">"Unreal performance numbers. 98 Lighthouse on a fully animated, 3D-heavy marketing site. The engineering is as impressive as the aesthetics."</div>
+          <div class="tclient">
+            <div class="tavatar" style="--c:#ffd700">A</div>
+            <div>
+              <strong>Amara Osei</strong>
+              <span>CTO, Steelframe AI</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonials-nav">
+      <button class="t-prev" id="t-prev" aria-label="Previous">←</button>
+      <div class="t-dots" id="t-dots"></div>
+      <button class="t-next" id="t-next" aria-label="Next">→</button>
+    </div>
+  </section>
+
+  <!-- ─── CONTACT ─── -->
+  <section id="contact">
+    <div class="contact-inner">
+      <div class="contact-left">
+        <span class="section-tag" data-reveal>[ 06 — CONTACT ]</span>
+        <h2 data-reveal>Ready to<br/><em>Start Forging?</em></h2>
+        <p data-reveal>Drop us a line. We respond within 24 hours and always with a real human, not an auto-responder.</p>
+        <div class="contact-details">
+          <div class="contact-item" data-reveal>
+            <span class="ci-label">EMAIL</span>
+            <a href="mailto:hello@forge.studio">hello@forge.studio</a>
+          </div>
+          <div class="contact-item" data-reveal>
+            <span class="ci-label">BASED IN</span>
+            <span>San Francisco / Remote</span>
+          </div>
+          <div class="contact-item" data-reveal>
+            <span class="ci-label">AVAILABILITY</span>
+            <span class="available-dot"></span>
+            <span>Taking projects Q3 2025</span>
+          </div>
+        </div>
+      </div>
+      <div class="contact-right">
+        <form class="contact-form" id="contact-form" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="f-name">NAME</label>
+              <input type="text" id="f-name" name="name" placeholder="Your name" autocomplete="name" />
+            </div>
+            <div class="form-group">
+              <label for="f-email">EMAIL</label>
+              <input type="email" id="f-email" name="email" placeholder="your@email.com" autocomplete="email" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="f-service">SERVICE</label>
+            <select id="f-service" name="service">
+              <option value="" disabled selected>Select a service</option>
+              <option>Digital Experience Design</option>
+              <option>Brand Identity</option>
+              <option>3D / Spatial Computing</option>
+              <option>Frontend Engineering</option>
+              <option>Something Else</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="f-budget">BUDGET RANGE</label>
+            <select id="f-budget" name="budget">
+              <option value="" disabled selected>Select budget</option>
+              <option>Under $10k</option>
+              <option>$10k – $25k</option>
+              <option>$25k – $50k</option>
+              <option>$50k – $100k</option>
+              <option>$100k+</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="f-message">MESSAGE</label>
+            <textarea id="f-message" name="message" rows="5" placeholder="Tell us about your project..."></textarea>
+          </div>
+          <button type="submit" class="btn-primary form-submit">
+            <span>SEND MESSAGE</span>
+            <div class="btn-shimmer"></div>
+          </button>
+          <div class="form-success" id="form-success">
+            <span>✓</span> Message received. We'll be in touch soon.
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer id="footer">
+    <div class="footer-top">
+      <div class="footer-logo">
+        <span class="logo-mark">F</span>
+        <span class="logo-text">ORGE</span>
+      </div>
+      <p class="footer-tagline">Digital Fabrication Studio</p>
+    </div>
+    <div class="footer-mid">
+      <div class="footer-col">
+        <h5>Studio</h5>
+        <a href="#about">About</a>
+        <a href="#process">Process</a>
+        <a href="#">Careers</a>
+      </div>
+      <div class="footer-col">
+        <h5>Work</h5>
+        <a href="#projects">Projects</a>
+        <a href="#services">Services</a>
+        <a href="#">Case Studies</a>
+      </div>
+      <div class="footer-col">
+        <h5>Connect</h5>
+        <a href="https://twitter.com" target="_blank" rel="noopener">Twitter / X</a>
+        <a href="https://dribbble.com" target="_blank" rel="noopener">Dribbble</a>
+        <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <div class="footer-col">
+        <h5>Contact</h5>
+        <a href="mailto:hello@forge.studio">hello@forge.studio</a>
+        <a href="#contact">Start a Project</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 FORGE Studio. All rights reserved.</span>
+      <span>Crafted with obsession.</span>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
