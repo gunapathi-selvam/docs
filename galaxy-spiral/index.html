@@ -61,6 +61,9 @@
     <button id="btn-camera" class="btn btn-primary btn-sm" type="button">Enable camera</button>
     <button id="btn-burst" class="btn btn-ghost btn-sm" type="button" title="Space">Burst</button>
     <button id="btn-trails" class="btn btn-ghost btn-sm" type="button" aria-pressed="true" title="T">Trails</button>
+    <button id="btn-palette" class="btn btn-ghost btn-sm" type="button" title="G">Nebula</button>
+    <button id="btn-audio" class="btn btn-ghost btn-sm" type="button" aria-pressed="false" title="A">Audio</button>
+    <button id="btn-calibrate" class="btn btn-ghost btn-sm" type="button" title="K">Calibrate</button>
     <button id="btn-preview" class="btn btn-ghost btn-sm" type="button" aria-pressed="true" title="P">Preview</button>
     <button id="btn-panel" class="btn btn-ghost btn-sm" type="button">Panel</button>
   </div>
@@ -74,12 +77,27 @@
     <div class="readout"><span class="k">hands</span><span id="hud-hands" class="v">0</span></div>
     <div class="readout"><span class="k">scale</span><span id="hud-scale" class="v">1.00×</span></div>
     <div class="readout"><span class="k">render</span><span id="hud-fps" class="v">— fps</span></div>
+    <div class="readout"><span class="k">field</span><span id="hud-dots" class="v">—</span></div>
     <div class="latch"><div id="latch-bar" class="latch-bar"></div></div>
   </section>
 
   <section class="panel-block">
     <h2 class="panel-title">Shapes</h2>
     <div id="shape-list" class="shape-list"></div>
+  </section>
+
+  <section class="panel-block">
+    <h2 class="panel-title">Motion</h2>
+    <div class="slider">
+      <label for="ctl-morph">morph speed</label>
+      <input id="ctl-morph" type="range" min="0.25" max="3" step="0.05" value="1" />
+      <output id="out-morph">1.00×</output>
+    </div>
+    <div class="slider">
+      <label for="ctl-drift">drift</label>
+      <input id="ctl-drift" type="range" min="0" max="3" step="0.05" value="1" />
+      <output id="out-drift">1.00×</output>
+    </div>
   </section>
 
   <section class="panel-block">
@@ -98,8 +116,10 @@
   <section class="panel-block">
     <h2 class="panel-title">Keys</h2>
     <p class="keys"><kbd>1</kbd>–<kbd>8</kbd> shape · <kbd>Space</kbd> burst · <kbd>C</kbd> camera ·
-    <kbd>T</kbd> trails · <kbd>P</kbd> preview · <kbd>H</kbd> hide UI</p>
+    <kbd>T</kbd> trails · <kbd>P</kbd> preview · <kbd>H</kbd> hide UI ·
+    <kbd>G</kbd> palette · <kbd>A</kbd> audio · <kbd>K</kbd> calibrate</p>
     <p class="keys dim">No camera? Drag and scroll on the canvas.</p>
+    <p class="keys dim">More dots: add <code>?dots=5000</code> to the URL.</p>
   </section>
 </aside>
 

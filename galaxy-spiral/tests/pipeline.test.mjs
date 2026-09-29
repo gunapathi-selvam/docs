@@ -131,6 +131,55 @@ show([hand({ raised: [1, 1, 1, 1, 1] })], 60);
 ok(field.attractor === null, 'releasing the pinch frees the swarm');
 ok(radius() > squeezed * 1.4, `swarm expands again after release (${radius().toFixed(2)})`);
 
+// The grab must land under the hand, not at the world origin. Mean radius
+// measured from the origin cannot tell those two apart, which is exactly how
+// the origin-pinned attractor survived the suite — so measure from both.
+section('pinch follows the hand');
+const centroid = () => {
+  let x = 0, y = 0, z = 0;
+  for (let i = 0; i < field.count; i++) {
+    x += field.pos[i * 3]; y += field.pos[i * 3 + 1]; z += field.pos[i * 3 + 2];
+  }
+  return { x: x / field.count, y: y / field.count, z: z / field.count };
+};
+
+// Same hand position, open then pinched, so the only difference is the grab.
+clear(90);
+show([hand({ cx: 0.84, raised: [1, 1, 1, 1, 1] })], 90);
+const restC = centroid();
+show([hand({ cx: 0.84, raised: [1, 1, 1, 1, 1], pinch: true })], 140);
+
+const att = field.attractor;
+const away = att ? Math.hypot(att.x, att.y, att.z) : 0;
+ok(away > 0.3, `an off-centre pinch puts the attractor away from the origin (|a| = ${away.toFixed(2)})`);
+
+// Project the centre of mass onto the grab axis. Mean radius cannot see this,
+// which is how an origin-pinned attractor passed the suite for so long.
+const ax = att.x / away, ay = att.y / away, az = att.z / away;
+const along = (c) => c.x * ax + c.y * ay + c.z * az;
+ok(along(centroid()) - along(restC) > 0.25,
+  `the grab drags the swarm's centre of mass toward the hand (${along(restC).toFixed(2)} -> ${along(centroid()).toFixed(2)} along the grab axis)`);
+
+clear(90);
+
+// ============================================================ two-hand grab
+section('two-hand grab');
+const twoOpen = [hand({ cx: 0.35, raised: [1, 1, 1, 1, 1] }), hand({ cx: 0.65, raised: [1, 1, 1, 1, 1] })];
+show(twoOpen, 60);
+ok(field.attractor === null, 'two open hands set no attractor');
+
+const twoPinch = [
+  hand({ cx: 0.35, raised: [1, 1, 1, 1, 1], pinch: true }),
+  hand({ cx: 0.65, raised: [1, 1, 1, 1, 1], pinch: true }),
+];
+show(twoPinch, 90);
+ok(field.attractor !== null && field.attractor.strength > 0,
+  `a two-handed pinch grabs too (strength ${field.attractor?.strength.toFixed(1)})`);
+ok(byId.get('hud-gesture').textContent.includes('grab'),
+  `HUD announces the two-hand grab ("${byId.get('hud-gesture').textContent}")`);
+show(twoOpen, 60);
+ok(field.attractor === null, 'releasing a two-handed pinch frees the swarm');
+
 // ============================================================ two hands
 section('two hands');
 const near2 = [hand({ cx: 0.45, raised: [1, 1, 1, 1, 1] }), hand({ cx: 0.55, raised: [1, 1, 1, 1, 1] })];

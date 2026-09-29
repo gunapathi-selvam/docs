@@ -31,6 +31,21 @@ ok((ctxCalls.arc - warm) / 30 > 985,
   `settled loop draws the full field every frame (${((ctxCalls.arc - warm) / 30).toFixed(1)}/1000 dots)`);
 ok(ctxCalls.bad === 0, `no NaN or non-positive geometry reached the canvas (${ctxCalls.bad} bad)`);
 
+section('attract loop');
+// While the intro card is up and nobody has touched anything, the field
+// cycles the catalogue so a cold visitor sees what the app does.
+const attractFrom = byId.get('hud-shape').textContent;
+pump(200);   // ~3.3s, past the dwell
+const attractTo = byId.get('hud-shape').textContent;
+ok(attractTo !== attractFrom, `idle intro cycles the catalogue (${attractFrom} -> ${attractTo})`);
+// Any input retires it: the shape must then stay exactly where it is put.
+winListeners.keydown({ key: '6', target: body, preventDefault() {} });
+pump(2);
+const pinned = byId.get('hud-shape').textContent;
+pump(400);   // ~6.7s, two dwells
+ok(byId.get('hud-shape').textContent === pinned,
+  `input retires the attract loop for good (still ${pinned})`);
+
 section('HUD wiring');
 const hudShape = byId.get('hud-shape');
 ok(hudShape.textContent === 'Galaxy Spiral', `shows the default shape ("${hudShape.textContent}")`);

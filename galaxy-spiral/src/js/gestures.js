@@ -78,15 +78,29 @@ export function pinchStrength(lm) {
 }
 
 /**
- * Apparent hand size as a crude depth cue: a hand near the lens spans more of
- * the frame. The 0.08..0.26 band covers roughly arm's length down to a hand
- * held right at the laptop, measured on a 640x480 feed.
+ * Default depth band. Covers roughly arm's length down to a hand held at the
+ * laptop, measured on a 640x480 feed with an average adult hand — which is why
+ * it is overridable: span varies with hand size and camera field of view.
  */
-export function handDepth(lm) {
-  return Math.min(1, Math.max(0, (handSpan(lm) - 0.08) / 0.18));
+export const DEFAULT_DEPTH_BAND = { lo: 0.08, hi: 0.26 };
+
+/**
+ * Apparent hand size as a crude depth cue: a hand near the lens spans more of
+ * the frame. Pass a calibrated band to adapt it to the user.
+ */
+export function handDepth(lm, band = DEFAULT_DEPTH_BAND) {
+  const range = band.hi - band.lo;
+  if (!(range > 1e-4)) return 0;
+  return Math.min(1, Math.max(0, (handSpan(lm) - band.lo) / range));
 }
 
-export function readHand(lm) {
+/** Derives a depth band from one relaxed hand held at a comfortable distance. */
+export function calibrateDepthBand(span) {
+  if (!(span > 1e-4)) return { ...DEFAULT_DEPTH_BAND };
+  return { lo: span * 0.6, hi: span * 1.72 };
+}
+
+export function readHand(lm, band = DEFAULT_DEPTH_BAND) {
   const { count, up } = countFingers(lm);
   return {
     landmarks: lm,
@@ -95,7 +109,7 @@ export function readHand(lm) {
     center: palmCenter(lm),
     roll: palmRoll(lm),
     pinch: pinchStrength(lm),
-    depth: handDepth(lm),
+    depth: handDepth(lm, band),
     span: handSpan(lm),
   };
 }

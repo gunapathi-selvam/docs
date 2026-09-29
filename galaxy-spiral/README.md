@@ -21,7 +21,12 @@ small static file server (`server.js`). Any static server works; it has to be
 secure context (opening `index.html` as a `file://` URL will not work).
 
 The first run downloads the MediaPipe hand model (~8 MB) from a CDN, so it
-needs a network connection once. The browser caches it afterwards.
+needs a network connection once. A service worker caches the model and the app
+shell afterwards, so later visits work with no network at all.
+
+Want more dots? Add `?dots=5000` to the URL — anything from 100 to 40 000. The
+shape, palette and trail settings are mirrored into the URL hash as you change
+them, so any configuration you land on is linkable.
 
 ## Gestures
 
@@ -34,9 +39,14 @@ Hold your hand up, palm toward the camera, roughly 40–70 cm away.
 | Sweep sideways | Flicks it into a spin |
 | Push toward / pull from the lens | Zooms in and out |
 | Hold up 0–5 fingers | Morphs into a different shape |
-| Pinch thumb + index | Grabs and crushes the swarm into your hand |
+| Pinch thumb + index | Grabs and gathers the swarm into your hand |
 | Two hands apart / together | Stretches and squeezes |
+| Pinch with either of two hands | Grabs at the midpoint between them |
 | Both hands as fists | Supernova burst |
+
+The grab lands **where your hand is**, not at the centre of the screen, and the
+pull falls off with distance — so it gathers the dots nearest you rather than
+imploding the whole field.
 
 Shapes by finger count:
 
@@ -62,6 +72,23 @@ Everything still works. Click **Explore without camera**, then drag to rotate,
 scroll to zoom, and use the keys:
 
 `1`–`8` shape · `Space` burst · `C` camera · `T` trails · `P` preview · `H` hide UI
+· `G` palette · `A` audio · `K` calibrate
+
+Leave it alone on the intro screen and it cycles the shape catalogue on its own
+until you touch something or a hand appears.
+
+### Calibration
+
+Depth is read from how large your hand looks, so it depends on your hand and
+your camera. If pushing toward the lens barely zooms — or pins instantly to
+maximum — press `K` with the camera on and hold your hand still at a
+comfortable distance for a second. The measured band is saved for next time.
+
+### Audio
+
+Press `A` to let the microphone drive the field's energy: the drift grows and
+the dots swell with the sound in the room. It is off by default, opt-in, and
+the audio never leaves the machine.
 
 ## Testing
 
@@ -88,11 +115,18 @@ order — each step isolates one part of the pipeline:
    second each. Watch the thin bar under the readouts fill before each switch;
    that is the debounce, and it is why flicking your hand about does not
    change anything.
-8. **Pinch** — touch thumb to index. The swarm collapses into your hand and
-   the gesture readout says `grab`. A **fist should not** do this; it should
-   give you the Core shape instead.
+8. **Pinch** — touch thumb to index. The swarm gathers into your hand and the
+   gesture readout says `grab`. Move the pinch around: the clump should follow
+   your hand, *not* sit in the middle of the screen. A **fist should not** do
+   this; it should give you the Core shape instead.
 9. **Two hands** — pull them apart to stretch, tilt one above the other to
-   roll, clench both into fists for a supernova.
+   roll, pinch either one to grab at the midpoint, clench both into fists for
+   a supernova.
+10. **Renderer** — the `field` readout ends in `gl` or `2d`. On a machine with
+    WebGL2 it should say `gl`; `2d` means the fallback is in use, which is
+    correct behaviour but worth knowing when judging frame rate.
+11. **Offline** — load the page once with the camera enabled, then go offline
+    and reload. It should still come up and still track.
 
 The panel readouts are the debugging tool: `gesture` shows what the app thinks
 you are doing, `hands` how many it sees, and `render` the frame rate.
@@ -102,9 +136,10 @@ you are doing, `hands` how many it sees, and `render` the frame rate.
 ```bash
 npm test              # all suites
 npm test -- pipeline  # just one
+npm run bench         # per-frame JS cost at 1k–20k dots
 ```
 
-111 checks, no dependencies, no browser needed. Three suites:
+140 checks, no dependencies, no browser needed. Three suites:
 
 | Suite | Covers |
 | --- | --- |
@@ -117,25 +152,46 @@ The fake DOM lives in `tests/harness.mjs` and the synthetic hand generator in
 hands so extended fingers curve slightly rather than being perfect rulers.
 Suites each run in their own process so their globals cannot leak.
 
-What this does **not** cover: real camera input, real MediaPipe inference, and
-actual pixels on screen. Those need the manual pass above.
+What this does **not** cover: real camera input, real MediaPipe inference,
+actual pixels on screen, and the WebGL renderer — the fake DOM returns `null`
+for `getContext('webgl2')`, so the suites drive the 2D fallback. Those need the
+manual pass above.
+
+One lesson is baked into the pinch tests and worth repeating when you add
+coverage here. Every 1.0 pinch assertion measured *mean radius from the world
+origin*, which cannot tell "gathers at the hand" apart from "gathers at the
+centre" — so a grab that ignored hand position passed for as long as it
+existed. Prefer a statistic that would visibly change if the behaviour were
+wrong; these now project the swarm's centre of mass onto the grab axis.
 
 ## How it works
 
 | File | Role |
 | --- | --- |
-| [src/js/particles.js](src/js/particles.js) | The 1000-dot field: spring physics, 3D rotation, perspective projection, batched canvas drawing |
+| [src/js/particles.js](src/js/particles.js) | The field: spring physics, 3D rotation, perspective projection, batched canvas drawing |
+| [src/js/glrenderer.js](src/js/glrenderer.js) | WebGL2 point-sprite renderer — the same projection, on the GPU |
 | [src/js/shapes.js](src/js/shapes.js) | Point-cloud generators for each shape |
 | [src/js/handTracker.js](src/js/handTracker.js) | Camera capture and the MediaPipe hand landmarker |
 | [src/js/gestures.js](src/js/gestures.js) | Turns 21 raw landmarks into finger counts, roll, pinch, depth |
+| [src/js/audio.js](src/js/audio.js) | Optional microphone reactivity |
 | [src/js/main.js](src/js/main.js) | Maps gestures onto the field, runs the render loop, drives the UI |
+| [sw.js](sw.js) | Service worker: caches the app shell and the hand model |
 
 Each dot is a spring pulled toward a target position. Switching shapes just
 swaps the targets, so the swarm flows into its new form instead of snapping.
-Rendering is 2D canvas with additive blending: dots are bucketed by colour and
-depth and drawn as ~50 batched paths per frame rather than 1000 individual
-fills. The whole per-frame JS cost is about **0.1 ms**, so the frame budget goes
-to the camera and the hand model.
+
+Rendering has two backends. Where WebGL2 is available the whole field is one
+`drawArrays` call, with rotation, projection and the colour ramp evaluated in
+the vertex shader. Otherwise it falls back to 2D canvas with additive blending,
+where a counting sort groups dots into 28 colour buckets × 4 alpha tiers so a
+frame costs at most 112 `fill` calls instead of 1000 style changes. A canvas
+can only hand out one kind of context, so the choice is made at startup —
+`galaxySpiral.renderer` and the panel's `field` readout tell you which won.
+
+Per-frame JS cost on the 2D path is **0.11 ms at 1000 dots** and **0.98 ms at
+10 000** (`npm run bench`). That measures physics, projection and batching
+only — real frame time is dominated by rasterising the dots and by MediaPipe
+inference, so treat it as a bound on the JS, not a frame budget.
 
 Two details in the gesture layer are worth knowing about, because the obvious
 implementations are wrong:
@@ -156,13 +212,22 @@ tracker asks for GPU inference and falls back to CPU automatically.
 
 ## Tuning
 
-Feel is controlled by a few constants:
+Without touching code:
+
+- **Morph speed** and **Drift** sliders in the panel — how fast shapes re-form,
+  and how much the field breathes at rest (drift 0 settles dead still)
+- **URL** — `?dots=`, `?shape=`, `?palette=`, `?trails=0`
+
+In the source, feel is controlled by a few constants:
 
 - Springiness and drag — `stiffness` and `damping` in `ParticleField`
-- Dot count — the `DOT_COUNT` constant in `main.js`
+- Default dot count — `DOT_COUNT` in `main.js`
 - Gesture responsiveness — the `Smoothed` factors at the top of `main.js`
   (lower = smoother but laggier)
 - Shape hold time — the `PoseLatch` interval in `main.js`
+- Depth band — `DEFAULT_DEPTH_BAND` in `gestures.js`, or press `K` to
+  calibrate it to your own hand
 
 The live field is exposed on `window.galaxySpiral` for poking at from the
-console, e.g. `galaxySpiral.field.setShape('torus')`.
+console, e.g. `galaxySpiral.field.setShape('torus')` or
+`galaxySpiral.field.cyclePalette()`.

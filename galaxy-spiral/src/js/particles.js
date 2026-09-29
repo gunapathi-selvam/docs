@@ -1,28 +1,36 @@
-// 1000-dot field: spring physics toward a shape target, 3D rotation,
+// Particle field: spring physics toward a shape target, 3D rotation,
 // perspective projection, and batched additive canvas rendering.
 
 import { buildShape } from './shapes.js';
 
-const PALETTE_STOPS = [
-  [109, 40, 217],   // violet
-  [79, 70, 229],    // indigo
-  [6, 182, 212],    // cyan
-  [103, 232, 249],  // ice
-  [240, 171, 252],  // orchid
+export const PALETTES = [
+  { id: 'nebula', name: 'Nebula', stops: [[109, 40, 217], [79, 70, 229], [6, 182, 212], [103, 232, 249], [240, 171, 252]] },
+  { id: 'ember', name: 'Ember', stops: [[120, 20, 40], [220, 60, 30], [245, 130, 32], [250, 204, 21], [255, 247, 200]] },
+  { id: 'flora', name: 'Flora', stops: [[20, 83, 45], [16, 145, 105], [52, 211, 153], [163, 230, 53], [236, 252, 203]] },
+  { id: 'aurora', name: 'Aurora', stops: [[49, 10, 101], [124, 58, 237], [34, 211, 238], [74, 222, 128], [190, 242, 100]] },
 ];
+
 const BUCKETS = 28;
 const ALPHA_TIERS = 4;
+const SLOTS = BUCKETS * ALPHA_TIERS;
 
-function buildPalette() {
+// Real alpha range. Tier bounds are derived from these rather than [0,1), so
+// the dimmest tier is not painted darker than any dot it actually contains.
+const A_LO = 0.18;
+const A_HI = 0.98;
+
+const FOCAL = 3.1;
+const CULL_MARGIN = 40;
+const TAU = Math.PI * 2;
+
+function buildPalette(stops) {
   const colors = [];
   for (let i = 0; i < BUCKETS; i++) {
-    const t = (i / (BUCKETS - 1)) * (PALETTE_STOPS.length - 1);
+    const t = (i / (BUCKETS - 1)) * (stops.length - 1);
     const lo = Math.floor(t);
-    const hi = Math.min(PALETTE_STOPS.length - 1, lo + 1);
+    const hi = Math.min(stops.length - 1, lo + 1);
     const f = t - lo;
-    const c = [0, 1, 2].map((k) =>
-      Math.round(PALETTE_STOPS[lo][k] + (PALETTE_STOPS[hi][k] - PALETTE_STOPS[lo][k]) * f));
-    colors.push(c);
+    colors.push([0, 1, 2].map((k) => Math.round(stops[lo][k] + (stops[hi][k] - stops[lo][k]) * f)));
   }
   return colors;
 }
@@ -32,7 +40,6 @@ const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 export class ParticleField {
   constructor(count = 1000) {
     this.count = count;
-    this.palette = buildPalette();
 
     this.pos = new Float32Array(count * 3);
     this.vel = new Float32Array(count * 3);
@@ -44,30 +51,42 @@ export class ParticleField {
     for (let i = 0; i < count; i++) {
       this.tint[i] = Math.random();
       this.sizeSeed[i] = 0.65 + Math.random() * 0.75;
-      this.phase[i] = Math.random() * Math.PI * 2;
+      this.phase[i] = Math.random() * TAU;
       // Start scattered so the first morph reads as an inrush, not a pop.
       this.pos[i * 3] = (Math.random() - 0.5) * 6;
       this.pos[i * 3 + 1] = (Math.random() - 0.5) * 6;
       this.pos[i * 3 + 2] = (Math.random() - 0.5) * 6;
     }
 
-    // Draw batches: one path per colour bucket instead of 1000 style changes.
-    this.batchXYR = Array.from({ length: BUCKETS }, () => new Float32Array(count * 3));
-    this.batchAlpha = Array.from({ length: BUCKETS }, () => new Float32Array(count));
-    this.batchLen = new Int32Array(BUCKETS);
+    // Draw batching by counting sort into BUCKETS x ALPHA_TIERS slots. Two
+    // flat arrays rather than one full-size array per bucket, which cost 28x
+    // more memory than the dots could ever fill.
+    this.projXYR = new Float32Array(count * 3);
+    this.projSlot = new Int32Array(count);
+    this.packed = new Float32Array(count * 3);
+    this.slotCount = new Int32Array(SLOTS);
+    this.slotStart = new Int32Array(SLOTS + 1);
+    this.slotCursor = new Int32Array(SLOTS);
 
     // Transform state, driven by gestures.
     this.rot = { x: -0.35, y: 0, z: 0 };
     this.spin = { x: 0, y: 0.25, z: 0 };
     this.scale = 1;
     this.offset = { x: 0, y: 0 };
-    this.attractor = null;   // { x, y, strength } in world units
+    this.attractor = null;   // { x, y, z, strength } in world units
     this.shapeId = null;
     this.time = 0;
+    this.visible = 0;
 
     this.stiffness = 13;
     this.damping = 0.88;
-    this.turbulence = 1;
+    this.turbulence = 1;   // idle drift amount, 0..3
+    this.morph = 1;        // stiffness multiplier, 0.25..3
+    this.energy = 0;       // external excitation (audio), 0..1
+
+    this.paletteId = PALETTES[0].id;
+    this.palette = buildPalette(PALETTES[0].stops);
+    this.stops = PALETTES[0].stops;
 
     this.setShape('galaxy');
   }
@@ -77,6 +96,22 @@ export class ParticleField {
     this.shapeId = id;
     this.target.set(buildShape(id, this.count));
     return true;
+  }
+
+  setPalette(id) {
+    const p = PALETTES.find((x) => x.id === id);
+    if (!p || p.id === this.paletteId) return false;
+    this.paletteId = p.id;
+    this.palette = buildPalette(p.stops);
+    this.stops = p.stops;
+    return true;
+  }
+
+  cyclePalette(step = 1) {
+    const i = PALETTES.findIndex((p) => p.id === this.paletteId);
+    const next = PALETTES[(i + step + PALETTES.length) % PALETTES.length];
+    this.setPalette(next.id);
+    return next;
   }
 
   burst(power = 7) {
@@ -91,14 +126,52 @@ export class ParticleField {
     }
   }
 
+  /** Shared projection parameters, so screenToWorld stays in step with render. */
+  viewParams(width, height) {
+    return {
+      cx: width / 2 + this.offset.x,
+      cy: height / 2 + this.offset.y,
+      viewScale: Math.min(width, height) * 0.3 * this.scale,
+      focal: FOCAL,
+    };
+  }
+
+  /**
+   * Inverse of the render projection at the z=0 plane: screen pixels back to
+   * pre-rotation world space. Lets a gesture place an attractor under the hand
+   * even while the field is rotating.
+   */
+  screenToWorld(sx, sy, width, height) {
+    const { cx, cy, viewScale } = this.viewParams(width, height);
+    if (!(viewScale > 1e-6)) return { x: 0, y: 0, z: 0 };
+
+    const x3 = (sx - cx) / viewScale;
+    const y3 = (sy - cy) / viewScale;
+
+    const sinX = Math.sin(this.rot.x), cosX = Math.cos(this.rot.x);
+    const sinY = Math.sin(this.rot.y), cosY = Math.cos(this.rot.y);
+    const sinZ = Math.sin(this.rot.z), cosZ = Math.cos(this.rot.z);
+
+    // Undo Z.
+    const x2 = x3 * cosZ + y3 * sinZ;
+    const y1 = -x3 * sinZ + y3 * cosZ;
+    // Undo Y, solving for the point whose rotated depth is 0.
+    const x = x2 * cosY;
+    const z1 = x2 * sinY;
+    // Undo X.
+    const y = y1 * cosX + z1 * sinX;
+    const z = -y1 * sinX + z1 * cosX;
+    return { x, y, z };
+  }
+
   update(dt) {
     this.time += dt;
     const t = this.time;
     const damp = Math.pow(this.damping, dt * 60);
-    const k = this.stiffness;
+    const k = this.stiffness * this.morph;
     const wave = this.shapeId === 'grid';
     const att = this.attractor;
-    const turb = this.turbulence * 0.55;
+    const turb = this.turbulence * 0.55 * (1 + this.energy * 2.2);
 
     for (let i = 0; i < this.count; i++) {
       const i3 = i * 3;
@@ -122,7 +195,7 @@ export class ParticleField {
       if (att) {
         const dx = att.x - this.pos[i3];
         const dy = att.y - this.pos[i3 + 1];
-        const dz = -this.pos[i3 + 2];
+        const dz = (att.z || 0) - this.pos[i3 + 2];
         const d2 = dx * dx + dy * dy + dz * dz + 0.35;
         const pull = att.strength / d2;
         ax += dx * pull;
@@ -164,17 +237,15 @@ export class ParticleField {
       ctx.fillRect(0, 0, width, height);
     }
 
-    const cx = width / 2 + this.offset.x;
-    const cy = height / 2 + this.offset.y;
-    const viewScale = Math.min(width, height) * 0.3 * this.scale;
-    const focal = 3.1;
-    const baseR = Math.max(1, Math.min(width, height) / 620) * 1.55 * dotScale;
+    const { cx, cy, viewScale, focal } = this.viewParams(width, height);
+    const baseR = Math.max(1, Math.min(width, height) / 620) * 1.55 * dotScale * (1 + this.energy * 0.5);
 
     const sinX = Math.sin(this.rot.x), cosX = Math.cos(this.rot.x);
     const sinY = Math.sin(this.rot.y), cosY = Math.cos(this.rot.y);
     const sinZ = Math.sin(this.rot.z), cosZ = Math.cos(this.rot.z);
 
-    this.batchLen.fill(0);
+    this.slotCount.fill(0);
+    let visible = 0;
 
     for (let i = 0; i < this.count; i++) {
       const i3 = i * 3;
@@ -188,56 +259,73 @@ export class ParticleField {
       const x3 = x2 * cosZ - y1 * sinZ;
       const y3 = x2 * sinZ + y1 * cosZ;
 
+      // Guard the denominator before dividing, not the quotient after: at
+      // z2 === -focal the divide yields Infinity and NaN escapes the cull.
+      if (!(z2 > -focal + 1e-4)) continue;
       const persp = focal / (focal + z2);
-      if (persp <= 0.02) continue;
 
       const px = cx + x3 * persp * viewScale;
       const py = cy + y3 * persp * viewScale;
-      if (px < -40 || px > width + 40 || py < -40 || py > height + 40) continue;
+      // Negated comparisons so a NaN coordinate is culled rather than drawn.
+      if (!(px >= -CULL_MARGIN && px <= width + CULL_MARGIN)) continue;
+      if (!(py >= -CULL_MARGIN && py <= height + CULL_MARGIN)) continue;
 
       const depth = clamp((persp - 0.55) / 1.25, 0, 1);
-      const alpha = 0.18 + depth * 0.8;
       const r = baseR * this.sizeSeed[i] * (0.45 + persp * 0.75);
+      if (!(r > 0)) continue;
 
       let b = Math.floor((this.tint[i] * 0.62 + depth * 0.38) * (BUCKETS - 1));
       b = b < 0 ? 0 : b > BUCKETS - 1 ? BUCKETS - 1 : b;
+      let tier = Math.floor(depth * ALPHA_TIERS);
+      tier = tier < 0 ? 0 : tier > ALPHA_TIERS - 1 ? ALPHA_TIERS - 1 : tier;
 
-      const n = this.batchLen[b]++;
-      const arr = this.batchXYR[b];
-      arr[n * 3] = px;
-      arr[n * 3 + 1] = py;
-      arr[n * 3 + 2] = r;
-      this.batchAlpha[b][n] = alpha;
+      const o = visible * 3;
+      this.projXYR[o] = px;
+      this.projXYR[o + 1] = py;
+      this.projXYR[o + 2] = r;
+      this.projSlot[visible] = b * ALPHA_TIERS + tier;
+      this.slotCount[b * ALPHA_TIERS + tier]++;
+      visible++;
+    }
+
+    let acc = 0;
+    for (let s = 0; s < SLOTS; s++) {
+      this.slotStart[s] = acc;
+      this.slotCursor[s] = acc;
+      acc += this.slotCount[s];
+    }
+    this.slotStart[SLOTS] = acc;
+
+    for (let i = 0; i < visible; i++) {
+      const d = this.slotCursor[this.projSlot[i]]++ * 3;
+      const o = i * 3;
+      this.packed[d] = this.projXYR[o];
+      this.packed[d + 1] = this.projXYR[o + 1];
+      this.packed[d + 2] = this.projXYR[o + 2];
     }
 
     ctx.globalCompositeOperation = 'lighter';
-    for (let b = 0; b < BUCKETS; b++) {
-      const n = this.batchLen[b];
+    const span = A_HI - A_LO;
+    for (let s = 0; s < SLOTS; s++) {
+      const n = this.slotCount[s];
       if (!n) continue;
-      const rgb = this.palette[b];
-      const head = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',';
-      const arr = this.batchXYR[b];
-      const alphas = this.batchAlpha[b];
+      const rgb = this.palette[(s / ALPHA_TIERS) | 0];
+      const a = A_LO + span * (((s % ALPHA_TIERS) + 0.5) / ALPHA_TIERS);
 
-      // Alpha varies per dot, so group into a few tiers within each bucket.
-      for (let tier = 0; tier < ALPHA_TIERS; tier++) {
-        const lo = tier / ALPHA_TIERS;
-        const hi = (tier + 1) / ALPHA_TIERS;
-        let opened = false;
-        for (let j = 0; j < n; j++) {
-          const a = alphas[j];
-          if (a < lo || a >= hi) continue;
-          if (!opened) { ctx.beginPath(); opened = true; }
-          const px = arr[j * 3], py = arr[j * 3 + 1], r = arr[j * 3 + 2];
-          ctx.moveTo(px + r, py);
-          ctx.arc(px, py, r, 0, Math.PI * 2);
-        }
-        if (opened) {
-          ctx.fillStyle = head + ((lo + hi) / 2).toFixed(3) + ')';
-          ctx.fill();
-        }
+      ctx.beginPath();
+      const start = this.slotStart[s];
+      for (let j = start; j < start + n; j++) {
+        const j3 = j * 3;
+        const px = this.packed[j3], py = this.packed[j3 + 1], r = this.packed[j3 + 2];
+        ctx.moveTo(px + r, py);
+        ctx.arc(px, py, r, 0, TAU);
       }
+      ctx.fillStyle = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a.toFixed(3) + ')';
+      ctx.fill();
     }
     ctx.globalCompositeOperation = 'source-over';
+
+    this.visible = visible;
+    return visible;
   }
 }

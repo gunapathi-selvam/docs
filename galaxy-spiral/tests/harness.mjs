@@ -38,6 +38,7 @@ class El {
     this.classList = new ClassList(); this.listeners = new Map(); this.attrs = {};
     this.textContent = ''; this.innerHTML = '';
     this.hidden = false; this.disabled = false;
+    this.value = '';
     this.width = 300; this.height = 150;
     if (tag === 'canvas') this._ctx = makeCtx();
     if (tag === 'video') {
@@ -45,7 +46,9 @@ class El {
       this.play = async () => {};
     }
   }
-  getContext() { return this._ctx; }
+  // Only 2D is faked. Returning null for 'webgl2' is what drives main.js down
+  // its CPU fallback, which is the path these tests are here to cover.
+  getContext(type = '2d') { return type === '2d' ? this._ctx : null; }
   addEventListener(t, fn) { (this.listeners.get(t) ?? this.listeners.set(t, []).get(t)).push(fn); }
   removeEventListener() {}
   dispatch(t, ev = {}) {
