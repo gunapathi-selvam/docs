@@ -1,0 +1,12 @@
+{
+  "name": "galaxy-spiral",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Control 1000 dots with hand gestures via your laptop camera.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node tests/run.mjs"
+  }
+}

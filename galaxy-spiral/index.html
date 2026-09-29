@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Galaxy Spiral — hand-controlled particle field</title>
+<meta name="description" content="Steer 1000 dots with your hands using your laptop camera." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='9' fill='%2306b6d4'/><circle cx='16' cy='16' r='3' fill='%23f0abfc'/></svg>" />
+<link rel="stylesheet" href="src/styles.css" />
+</head>
+<body>
+
+<canvas id="scene"></canvas>
+<canvas id="overlay"></canvas>
+
+<!-- Intro / permission gate -->
+<div id="intro" class="intro">
+  <div class="intro-card">
+    <p class="eyebrow">1000 dots · live hand tracking</p>
+    <h1>Galaxy Spiral</h1>
+    <p class="lede">
+      Turn on your camera and move your hands in front of the laptop. The swarm
+      follows your palm, rolls with your wrist, and re-forms into a new shape
+      for every number of fingers you hold up.
+    </p>
+    <ul class="intro-list">
+      <li><b>Move</b> — the cloud tracks your palm around the screen</li>
+      <li><b>Rotate</b> — tilt your wrist to roll it, sweep sideways to spin it</li>
+      <li><b>Resize</b> — push toward the lens or pull away</li>
+      <li><b>Shape</b> — hold up 0–5 fingers</li>
+      <li><b>Grab</b> — pinch thumb and index to crush it into your hand</li>
+    </ul>
+    <div class="intro-actions">
+      <button id="btn-start" class="btn btn-primary" type="button">Enable camera</button>
+      <button id="btn-skip" class="btn btn-ghost" type="button">Explore without camera</button>
+    </div>
+    <p class="fineprint">
+      Video never leaves your machine — tracking runs entirely in the browser.
+      The hand model is fetched from a CDN on first use.
+    </p>
+  </div>
+</div>
+
+<!-- Camera preview -->
+<div id="preview" class="preview" hidden>
+  <canvas id="preview-skeleton" class="preview-skeleton" width="320" height="240"></canvas>
+  <span class="preview-label">camera</span>
+</div>
+
+<!-- Top status bar -->
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-dot"></span>
+    <span class="brand-name">Galaxy&nbsp;Spiral</span>
+  </div>
+  <div class="status">
+    <span id="status-dot" class="status-dot" data-state="off"></span>
+    <span id="status-text">camera off</span>
+  </div>
+  <div class="topbar-actions">
+    <button id="btn-camera" class="btn btn-primary btn-sm" type="button">Enable camera</button>
+    <button id="btn-burst" class="btn btn-ghost btn-sm" type="button" title="Space">Burst</button>
+    <button id="btn-trails" class="btn btn-ghost btn-sm" type="button" aria-pressed="true" title="T">Trails</button>
+    <button id="btn-preview" class="btn btn-ghost btn-sm" type="button" aria-pressed="true" title="P">Preview</button>
+    <button id="btn-panel" class="btn btn-ghost btn-sm" type="button">Panel</button>
+  </div>
+</header>
+
+<!-- Side panel -->
+<aside class="panel">
+  <section class="panel-block readouts">
+    <div class="readout"><span class="k">shape</span><span id="hud-shape" class="v">—</span></div>
+    <div class="readout"><span class="k">gesture</span><span id="hud-gesture" class="v">waiting for a hand</span></div>
+    <div class="readout"><span class="k">hands</span><span id="hud-hands" class="v">0</span></div>
+    <div class="readout"><span class="k">scale</span><span id="hud-scale" class="v">1.00×</span></div>
+    <div class="readout"><span class="k">render</span><span id="hud-fps" class="v">— fps</span></div>
+    <div class="latch"><div id="latch-bar" class="latch-bar"></div></div>
+  </section>
+
+  <section class="panel-block">
+    <h2 class="panel-title">Shapes</h2>
+    <div id="shape-list" class="shape-list"></div>
+  </section>
+
+  <section class="panel-block">
+    <h2 class="panel-title">Gestures</h2>
+    <dl class="legend">
+      <dt>Palm position</dt><dd>moves the swarm</dd>
+      <dt>Wrist tilt</dt><dd>rolls it</dd>
+      <dt>Sideways sweep</dt><dd>spins it</dd>
+      <dt>Push / pull</dt><dd>zooms in and out</dd>
+      <dt>Pinch</dt><dd>grabs and crushes</dd>
+      <dt>Two hands apart</dt><dd>stretches</dd>
+      <dt>Two fists</dt><dd>supernova</dd>
+    </dl>
+  </section>
+
+  <section class="panel-block">
+    <h2 class="panel-title">Keys</h2>
+    <p class="keys"><kbd>1</kbd>–<kbd>8</kbd> shape · <kbd>Space</kbd> burst · <kbd>C</kbd> camera ·
+    <kbd>T</kbd> trails · <kbd>P</kbd> preview · <kbd>H</kbd> hide UI</p>
+    <p class="keys dim">No camera? Drag and scroll on the canvas.</p>
+  </section>
+</aside>
+
+<script type="module" src="src/js/main.js"></script>
+</body>
+</html>

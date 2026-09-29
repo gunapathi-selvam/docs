@@ -1,0 +1,1 @@
+I want to generate a website where i can control a set of 1000 dots with my hand gesture via laptop camera. Like movement, shapes, rotation
