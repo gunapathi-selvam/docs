@@ -1,0 +1,12 @@
+{
+  "name": "asl-trainer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ASL fingerspelling trainer with a 26-class geometric classifier and confusion matrix heatmap.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node tests/run.mjs"
+  }
+}

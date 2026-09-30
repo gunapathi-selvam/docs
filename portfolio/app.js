@@ -4,7 +4,17 @@
 ══════════════════════════════════════════ */
 
 /* ─── GSAP setup ─── */
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+/* GSAP comes from a CDN, so it can be absent. Unguarded, a missing gsap throws
+   right here and aborts the rest of this file — which leaves every [data-reveal]
+   block stuck at opacity 0, i.e. a blank page. Degrade to no-animation instead. */
+const HAS_GSAP = typeof gsap !== 'undefined';
+const HAS_ST   = HAS_GSAP && typeof ScrollTrigger !== 'undefined';
+if (HAS_ST) {
+  gsap.registerPlugin(ScrollTrigger);
+  if (typeof ScrollToPlugin !== 'undefined') gsap.registerPlugin(ScrollToPlugin);
+} else {
+  document.documentElement.classList.add('no-gsap');
+}
 
 /* ─── Utility ─── */
 const qs = (s, ctx = document) => ctx.querySelector(s);
@@ -71,7 +81,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
   const pMat = new THREE.ShaderMaterial({
     vertexShader: `
       attribute float size;
-      attribute vec3 color;
+      // color is declared for us by three.js (USE_COLOR, from vertexColors: true)
       varying vec3 vColor;
       varying float vOpacity;
       uniform float uTime;
@@ -308,7 +318,9 @@ const lerp = (a, b, t) => a + (b - a) * t;
       if (href && href.startsWith('#')) {
         e.preventDefault();
         const target = qs(href);
-        if (target) gsap.to(window, { scrollTo: { y: target, offsetY: 72 }, duration: 1.2, ease: 'power3.inOut' });
+        if (!target) return;
+        if (HAS_ST) gsap.to(window, { scrollTo: { y: target, offsetY: 72 }, duration: 1.2, ease: 'power3.inOut' });
+        else window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 72, behavior: 'smooth' });
       }
     });
   });
@@ -319,6 +331,17 @@ const lerp = (a, b, t) => a + (b - a) * t;
    4. HERO ENTRANCE
 ════════════════════════════════════════ */
 (function heroEntrance() {
+  if (!HAS_GSAP) {
+    /* Show the hero outright rather than leaving it mid-animation. */
+    ['.hero-label', '.hero-sub', '.hero-actions', '.hero-stats'].forEach(sel => {
+      const el = qs(sel);
+      if (el) el.classList.add('in');
+    });
+    qsa('[data-hero-line]').forEach(el => el.classList.add('in'));
+    qsa('.stat-num').forEach(el => { el.textContent = el.dataset.count; });
+    return;
+  }
+
   const tl = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.1 });
 
   /* Label */
@@ -368,6 +391,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
    5. SCROLL REVEAL
 ════════════════════════════════════════ */
 (function initReveal() {
+  if (!HAS_ST) { qsa('[data-reveal]').forEach(el => el.classList.add('revealed')); return; }
   qsa('[data-reveal]').forEach((el, i) => {
     ScrollTrigger.create({
       trigger: el,
@@ -391,6 +415,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
    6. SERVICES — stagger reveal
 ════════════════════════════════════════ */
 (function initServices() {
+  if (!HAS_ST) return;   /* no GSAP: cards simply stay visible, unanimated */
   qsa('[data-service]').forEach((card, i) => {
     gsap.set(card, { opacity: 0, y: 40 });
     ScrollTrigger.create({
@@ -408,6 +433,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
    7. PROJECTS — row reveal + image tilt
 ════════════════════════════════════════ */
 (function initProjects() {
+  if (!HAS_ST) return;   /* no GSAP: cards simply stay visible, unanimated */
   qsa('[data-project]').forEach((row, i) => {
     gsap.set(row, { opacity: 0, x: -30 });
     ScrollTrigger.create({
@@ -438,7 +464,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
 ════════════════════════════════════════ */
 (function initAbout() {
   const visual = qs('.about-forge-visual');
-  if (!visual) return;
+  if (!visual || !HAS_ST) return;
   ScrollTrigger.create({
     trigger: '#about',
     start: 'top bottom',
@@ -454,6 +480,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
    9. PROCESS STEPS
 ════════════════════════════════════════ */
 (function initProcess() {
+  if (!HAS_ST) return;   /* no GSAP: cards simply stay visible, unanimated */
   qsa('[data-step]').forEach((step, i) => {
     gsap.set(step, { opacity: 0, y: 30 });
     ScrollTrigger.create({
@@ -491,7 +518,8 @@ const lerp = (a, b, t) => a + (b - a) * t;
 
   function goTo(n) {
     current = (n + total) % total;
-    gsap.to(track, { x: `-${current * 100}%`, duration: 0.65, ease: 'power3.inOut' });
+    if (HAS_GSAP) gsap.to(track, { x: `-${current * 100}%`, duration: 0.65, ease: 'power3.inOut' });
+    else track.style.transform = `translateX(-${current * 100}%)`;
     qsa('.t-dot', dotsWrap).forEach((d, i) => d.classList.toggle('active', i === current));
   }
 
@@ -530,24 +558,27 @@ const lerp = (a, b, t) => a + (b - a) * t;
     /* Animate button */
     span.textContent = 'SENDING...';
     btn.disabled = true;
-    gsap.to(btn, { opacity: 0.7, scale: 0.97, duration: 0.2 });
+    if (HAS_GSAP) gsap.to(btn, { opacity: 0.7, scale: 0.97, duration: 0.2 });
 
     setTimeout(() => {
-      gsap.to(btn, { opacity: 0, scale: 0.95, duration: 0.3, onComplete: () => { btn.style.display = 'none'; } });
+      if (HAS_GSAP) gsap.to(btn, { opacity: 0, scale: 0.95, duration: 0.3, onComplete: () => { btn.style.display = 'none'; } });
+      else btn.style.display = 'none';
       success.classList.add('show');
-      gsap.from(success, { opacity: 0, y: 10, duration: 0.5, ease: 'power3.out' });
+      if (HAS_GSAP) gsap.from(success, { opacity: 0, y: 10, duration: 0.5, ease: 'power3.out' });
       form.reset();
       setTimeout(() => {
         success.classList.remove('show');
         btn.style.display = '';
         btn.disabled = false;
         span.textContent = originalText;
-        gsap.to(btn, { opacity: 1, scale: 1, duration: 0.3 });
+        if (HAS_GSAP) gsap.to(btn, { opacity: 1, scale: 1, duration: 0.3 });
+        else btn.style.opacity = '';
       }, 4000);
     }, 1400);
   });
 
   /* Input float labels */
+  if (!HAS_GSAP) return;
   qsa('.form-group input, .form-group textarea, .form-group select').forEach(el => {
     el.addEventListener('focus', () => {
       gsap.to(el, { borderColor: 'rgba(255,107,53,0.5)', duration: 0.2 });
@@ -598,7 +629,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
   const sub      = qs('.hero-sub');
   const actions  = qs('.hero-actions');
 
-  if (!headline) return;
+  if (!headline || !HAS_ST) return;
   ScrollTrigger.create({
     trigger: '#hero',
     start: 'top top',
@@ -617,6 +648,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
    15. SECTION TAG LETTER SPLIT ANIMATION
 ════════════════════════════════════════ */
 (function initTagAnimation() {
+  if (!HAS_ST) return;   /* the split sets each letter to opacity 0 — never do that without a revealer */
   qsa('.section-tag[data-reveal]').forEach(el => {
     const text = el.textContent;
     el.textContent = '';
@@ -655,7 +687,7 @@ const lerp = (a, b, t) => a + (b - a) * t;
   `;
   footer.style.position = 'relative';
   footer.prepend(glow);
-  gsap.to(glow, { opacity: 0.5, scale: 1.1, duration: 3, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+  if (HAS_GSAP) gsap.to(glow, { opacity: 0.5, scale: 1.1, duration: 3, yoyo: true, repeat: -1, ease: 'sine.inOut' });
 })();
 
 
@@ -663,5 +695,5 @@ const lerp = (a, b, t) => a + (b - a) * t;
    17. REFRESH SCROLL TRIGGER
 ════════════════════════════════════════ */
 window.addEventListener('load', () => {
-  ScrollTrigger.refresh();
+  if (HAS_ST) ScrollTrigger.refresh();
 });

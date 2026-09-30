@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASL Fingerspelling Trainer</title>
+<link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+
+<!-- Camera preview with skeleton overlay -->
+<div id="camera-wrap" class="camera-wrap" aria-hidden="true">
+  <video id="camera-preview" class="camera-preview" autoplay muted playsinline
+    aria-label="Camera preview"></video>
+  <canvas id="overlay" class="overlay"
+    aria-label="Hand skeleton overlay"></canvas>
+</div>
+
+<!-- Every failure path renders text here. There is no state in which the
+     user sees a dead preview with no explanation. SPEC §16. -->
+<section id="failure" class="failure" hidden aria-live="assertive">
+  <h1 id="failure-title"></h1>
+  <p id="failure-body"></p>
+</section>
+
+<!-- Intro splash shown before the camera starts -->
+<section id="intro" class="intro" hidden>
+  <h1>ASL Fingerspelling Trainer</h1>
+  <p>Spell words with your hand. A geometric classifier reads each handshape;
+     a confusion matrix shows which letters you conflate.</p>
+  <p class="dim">This app recognises the 24 static letters of the fingerspelling
+     alphabet. J and Z are motion letters and are not included.</p>
+  <button id="begin" type="button">Start camera</button>
+  <button id="begin-keyboard" type="button" class="secondary">
+    Try without camera (keyboard mode)
+  </button>
+</section>
+
+<!-- Main quiz surface -->
+<main id="quiz" class="quiz" hidden>
+
+  <!-- Status chip: camera and classifier state, including abstention reason -->
+  <div id="status-chip" class="status-chip" aria-live="polite" aria-atomic="true">
+    Initialising
+  </div>
+
+  <!-- Target word: current position highlighted, adjacent repeats linked -->
+  <div id="target-word" class="target-word"
+    aria-live="polite" aria-atomic="false"
+    aria-label="Target word"></div>
+
+  <!-- Latched letter: the most recent committed letter -->
+  <div id="latched-letter" class="latched-letter"
+    aria-live="assertive" aria-atomic="true"
+    aria-label="Last letter"></div>
+
+  <!-- Progress bar: fills while SEEKING, drains while awaiting release. SPEC §9.5 -->
+  <div id="progress-bar" class="progress-bar"
+    role="progressbar"
+    aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+    aria-valuetext="waiting"></div>
+
+  <!-- Score panel -->
+  <aside id="score-panel" class="score-panel" aria-label="Score">
+    <dl class="readout">
+      <dt>Accuracy</dt><dd id="score-accuracy">—</dd>
+      <dt>Correct / attempts</dt>
+      <dd><span id="score-correct">0</span> / <span id="score-attempts">0</span></dd>
+      <dt>Streak</dt><dd id="score-streak">0</dd>
+      <dt>Bucket</dt><dd id="score-bucket">—</dd>
+      <dt>Hand</dt><dd id="score-hand">—</dd>
+      <dt>FPS</dt><dd id="score-fps">—</dd>
+    </dl>
+    <button id="reset-matrix" type="button" class="danger">Reset confusion matrix</button>
+  </aside>
+
+  <!-- Hint panel: revealed after MAX_ATTEMPTS wrong latches. SPEC §10.2 -->
+  <div id="hint" class="hint" hidden aria-live="polite">
+    <h3>Hint</h3>
+    <p id="hint-text"></p>
+  </div>
+
+</main>
+
+<!-- Confusion matrix heatmap -->
+<section id="matrix-section" class="matrix-section" hidden aria-label="Confusion matrix">
+  <h2>Confusion matrix</h2>
+  <p class="dim">Row = letter you were asked for. Column = what was classified.
+     Empty cells mean that letter has never been practised in this session.</p>
+  <canvas id="confusion-canvas" class="confusion-canvas"
+    aria-label="26 by 26 confusion matrix heatmap"></canvas>
+  <button id="matrix-table-toggle" type="button" aria-expanded="false">
+    View as table
+  </button>
+  <!-- Accessible table version of the heatmap. Hidden by default. SPEC §13.2 -->
+  <div id="matrix-table" class="matrix-table" hidden aria-label="Confusion matrix data table"></div>
+</section>
+
+<script type="module" src="src/js/main.js"></script>
+</body>
+</html>

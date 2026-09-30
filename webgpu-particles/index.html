@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebGPU Particles</title>
+<link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+
+<canvas id="stage" aria-label="Particle field"></canvas>
+
+<!-- Every failure path renders text here. SPEC §9: there is no state in which
+     the user sees a black rectangle with no explanation. -->
+<section id="failure" class="failure" hidden aria-live="assertive">
+  <h1 id="failure-title"></h1>
+  <p id="failure-body"></p>
+  <pre id="failure-detail" class="detail" hidden></pre>
+</section>
+
+<section id="intro" class="intro" hidden>
+  <h1>WebGPU Particles</h1>
+  <p>A million particles in a damped-spring field, integrated on the GPU.</p>
+  <button id="begin" type="button">Start</button>
+</section>
+
+<aside id="panel" class="panel" hidden aria-label="Controls and diagnostics">
+
+  <div class="group">
+    <h2>Shape</h2>
+    <div id="shapes" class="chips" role="group" aria-label="Shape">
+      <button type="button" data-shape="0" aria-pressed="false">1 Core</button>
+      <button type="button" data-shape="1" aria-pressed="false">2 Sphere</button>
+      <button type="button" data-shape="2" aria-pressed="false">3 Torus</button>
+      <button type="button" data-shape="3" aria-pressed="false">4 Cube</button>
+      <button type="button" data-shape="4" aria-pressed="false">5 Helix</button>
+      <button type="button" data-shape="5" aria-pressed="false">6 Galaxy</button>
+      <button type="button" data-shape="6" aria-pressed="false">7 Ringed</button>
+      <button type="button" data-shape="7" aria-pressed="false">8 Wave</button>
+    </div>
+  </div>
+
+  <div class="group">
+    <h2>Field</h2>
+    <label for="stiffness">Stiffness <output id="stiffness-out">13.0</output></label>
+    <input id="stiffness" type="range" min="1" max="40" step="0.5" value="13">
+
+    <label for="damping">Damping <output id="damping-out">0.88</output></label>
+    <input id="damping" type="range" min="0.5" max="0.99" step="0.01" value="0.88">
+
+    <label for="drift">Drift <output id="drift-out">0.20</output></label>
+    <input id="drift" type="range" min="0" max="1" step="0.01" value="0.2">
+  </div>
+
+  <div class="group">
+    <h2>Diagnostics</h2>
+    <dl class="readout">
+      <dt>Particles</dt><dd id="r-count">—</dd>
+      <dt>Workgroups</dt><dd id="r-groups">—</dd>
+      <dt>Frame</dt><dd id="r-frame">—</dd>
+      <dt>Compute</dt><dd id="r-compute">—</dd>
+      <dt>Render</dt><dd id="r-render">—</dd>
+      <dt>Upload / frame</dt><dd id="r-upload">—</dd>
+      <dt>Adapter</dt><dd id="r-adapter">—</dd>
+      <dt>Shapes resident</dt><dd id="r-resident">—</dd>
+    </dl>
+  </div>
+
+  <div class="group">
+    <h2>Keys</h2>
+    <p class="legend">
+      <kbd>1</kbd>–<kbd>8</kbd> shape · drag orbit · scroll dolly ·
+      hold left button to grab · <kbd>Space</kbd> burst ·
+      <kbd>G</kbd> palette · <kbd>R</kbd> reset camera
+    </p>
+  </div>
+
+  <div class="group" id="hand-controls" hidden>
+    <h2>Hand Tracking</h2>
+    <button id="hand-enable" type="button">Enable</button>
+    <span id="hand-status" class="hand-status-text"></span>
+    <p id="hand-error" class="hand-error" hidden></p>
+
+    <!-- The live reach number matters more than it looks. The press threshold
+         was derived from synthetic fixtures, and if a real hand never produces
+         that value the tap simply never fires, with no other symptom. Showing
+         the number turns an invisible failure into an obvious one. -->
+    <dl class="readout" id="hand-readout" hidden>
+      <dt>Reach now</dt><dd id="h-reach">—</dd>
+      <dt>Observed range</dt><dd id="h-range">—</dd>
+      <dt>State</dt><dd id="h-state">—</dd>
+    </dl>
+
+    <label for="press-reach" id="press-reach-label" hidden>
+      Tap threshold <output id="press-reach-out">0.60</output>
+    </label>
+    <input id="press-reach" type="range" min="0.15" max="0.95" step="0.01" value="0.60" hidden>
+    <p class="legend" id="press-reach-hint" hidden>
+      Poke your index finger forward and watch <strong>Reach now</strong>.
+      Set the threshold just below the peak value you can reach comfortably.
+    </p>
+  </div>
+
+</aside>
+
+<!-- Air-pointer cursor: follows index fingertip; changes on press. -->
+<div id="hand-cursor" class="hand-cursor" hidden></div>
+
+<!-- Camera preview with skeleton overlay (bottom-left corner). -->
+<div id="hand-preview-wrap" class="hand-preview-wrap" hidden>
+  <canvas id="hand-preview" width="160" height="120"></canvas>
+</div>
+
+<!-- Reach meter: shows normalised forward reach of the index finger. -->
+<div id="reach-meter-wrap" class="reach-meter-wrap" hidden>
+  <div id="reach-fill" class="reach-fill"></div>
+  <span class="reach-label">reach</span>
+</div>
+
+<script type="module" src="src/js/main.js"></script>
+</body>
+</html>

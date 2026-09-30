@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice Notes</title>
+<link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+
+<!-- Transcribe-only banner. role="status" so screen readers announce it.
+     Hidden when Claude is available. SPEC §13.2 -->
+<div id="transcribe-only-banner" class="banner" role="status" hidden>
+  <span id="transcribe-only-reason"></span>
+  To enable summarisation: copy <code>.env.example</code> to <code>.env</code>,
+  set <code>ANTHROPIC_API_KEY</code>, and restart the server.
+</div>
+
+<!-- Record bar ------------------------------------------------------------ -->
+<header class="record-bar" aria-label="Recording controls">
+
+  <button id="record-btn" type="button" class="record-btn" aria-pressed="false">
+    Record
+  </button>
+
+  <div class="level-meter" aria-label="Input level">
+    <div id="level-bar" class="level-bar" role="progressbar"
+         aria-label="Microphone level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div id="level-fill" class="level-fill"></div>
+    </div>
+    <span id="level-pct" class="level-pct" aria-hidden="true">0 %</span>
+  </div>
+
+  <span id="record-time" class="record-time" aria-live="polite">0:00</span>
+
+</header>
+
+<!-- Model panel ----------------------------------------------------------- -->
+<section id="model-panel" class="model-panel" aria-label="Speech model">
+
+  <div id="model-idle" class="model-row">
+    <button id="model-download-btn" type="button" class="btn-secondary">
+      Download speech model (~40 MB)
+    </button>
+    <span class="model-hint">Required for transcription. Downloaded once, then cached.</span>
+  </div>
+
+  <div id="model-loading" class="model-row" hidden>
+    <div id="model-progress" role="progressbar" aria-label="Model download"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+         class="progress-wrap">
+      <div id="model-progress-fill" class="progress-fill"></div>
+    </div>
+    <span id="model-progress-text" aria-live="polite">Starting download...</span>
+  </div>
+
+  <div id="model-warmup" class="model-row" hidden>
+    <span aria-live="polite">Warming up (compiling shaders)...</span>
+  </div>
+
+  <div id="model-ready" class="model-row" hidden>
+    <span id="model-backend-label">Ready</span>
+  </div>
+
+</section>
+
+<!-- Diagnostics aside ----------------------------------------------------- -->
+<details id="diagnostics" class="diagnostics">
+  <summary>Diagnostics</summary>
+  <dl class="readout">
+    <dt>Backend</dt><dd id="diag-backend">—</dd>
+    <dt>Queue depth</dt><dd id="diag-queue">—</dd>
+    <dt>Last window</dt><dd id="diag-window-time">—</dd>
+    <dt>Summarisation</dt><dd id="diag-summarise">—</dd>
+  </dl>
+</details>
+
+<!-- Main layout ----------------------------------------------------------- -->
+<main class="layout" aria-label="Voice Notes">
+
+  <!-- Transcript pane -->
+  <section class="pane" id="transcript-pane" aria-label="Transcript">
+    <div class="pane-header">
+      <h2>Transcript</h2>
+      <div class="pane-actions">
+        <input id="transcript-search" type="search" placeholder="Find in transcript"
+               aria-label="Find in transcript">
+        <button id="copy-markdown-btn" type="button" class="btn-icon"
+                aria-label="Copy as Markdown with timestamps">Copy</button>
+        <button id="export-txt-btn" type="button" class="btn-icon"
+                aria-label="Export as plain text">TXT</button>
+        <button id="export-vtt-btn" type="button" class="btn-icon"
+                aria-label="Export as WebVTT">VTT</button>
+        <button id="save-btn" type="button" class="btn-icon"
+                aria-label="Save transcript to local storage">Save</button>
+      </div>
+    </div>
+    <div id="transcript-list" class="transcript-list" role="list"
+         aria-label="Transcript segments" aria-live="polite">
+      <p class="transcript-empty">No transcript yet. Press Record to begin.</p>
+    </div>
+  </section>
+
+  <!-- Summary pane -->
+  <section class="pane" id="summary-pane" aria-label="Summary">
+    <div class="pane-header">
+      <h2>Summary</h2>
+    </div>
+
+    <!-- Confirmation affordance. Opens before any data is sent. SPEC §14.4 -->
+    <div id="confirm-panel" class="confirm-panel" hidden aria-label="Confirm sending transcript">
+      <p class="confirm-label">About to send to Claude:</p>
+      <dl class="confirm-stats">
+        <dt>Characters</dt><dd id="confirm-chars">—</dd>
+        <dt>Estimated tokens</dt><dd id="confirm-tokens">—</dd>
+        <dt>Estimated cost</dt><dd id="confirm-cost">—</dd>
+        <dt>Mode</dt><dd id="confirm-mode">—</dd>
+      </dl>
+      <p class="confirm-privacy">
+        No audio is sent. The recording stays on this device.
+      </p>
+      <details class="confirm-preview-wrap">
+        <summary>Preview request body</summary>
+        <pre id="confirm-preview" class="confirm-preview"></pre>
+      </details>
+      <div class="confirm-actions">
+        <button id="confirm-send-btn" type="button" class="btn-primary">Send transcript</button>
+        <button id="confirm-cancel-btn" type="button" class="btn-secondary">Cancel</button>
+      </div>
+    </div>
+
+    <div id="summary-controls" class="summary-controls">
+      <label for="summary-length">Length</label>
+      <select id="summary-length" aria-label="Summary length">
+        <option value="brief">Brief</option>
+        <option value="standard" selected>Standard</option>
+        <option value="detailed">Detailed</option>
+      </select>
+      <button id="summarise-btn" type="button" class="btn-primary"
+              aria-describedby="transcribe-only-banner">
+        Summarise with Claude
+      </button>
+    </div>
+
+    <div id="summary-loading" class="summary-loading" hidden aria-live="polite">
+      Summarising...
+    </div>
+
+    <div id="summary-content" class="summary-content" hidden>
+      <h3 id="summary-title" class="summary-title"></h3>
+
+      <section aria-label="Key points">
+        <h4>Key Points</h4>
+        <ul id="summary-key-points" class="summary-list"></ul>
+      </section>
+
+      <section aria-label="Action items">
+        <h4>Action Items</h4>
+        <ul id="summary-action-items" class="summary-list"></ul>
+      </section>
+
+      <section aria-label="Open questions">
+        <h4>Open Questions</h4>
+        <ul id="summary-open-questions" class="summary-list"></ul>
+      </section>
+    </div>
+
+    <div id="summary-error" class="summary-error" hidden aria-live="assertive"></div>
+
+  </section>
+
+</main>
+
+<!-- Hidden audio element for playback / seeking -->
+<audio id="playback-audio" aria-label="Recording playback"></audio>
+
+<script type="module" src="src/js/main.js"></script>
+</body>
+</html>

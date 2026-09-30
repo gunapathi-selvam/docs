@@ -1,0 +1,15 @@
+{
+  "name": "rag-notebook",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local-first RAG notebook: in-browser embeddings, vector search, Claude synthesis.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node tests/run.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.3"
+  }
+}

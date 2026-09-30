@@ -1,0 +1,74 @@
+# ---------------------------------------------------------------- deps
+node_modules/
+jspm_packages/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/versions
+
+# ---------------------------------------------------------------- logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+.npm
+
+# ---------------------------------------------------------------- build output
+# Nothing is built today; keep these claimed so a future bundler does not
+# get committed by accident.
+dist/
+build/
+out/
+.cache/
+.parcel-cache/
+.vite/
+*.tsbuildinfo
+src/vendor/
+
+# ---------------------------------------------------------------- gpu captures
+*.rdc
+*.wgpu-trace
+captures/
+
+# ---------------------------------------------------------------- test output
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+*.lcov
+
+# ---------------------------------------------------------------- environment
+.env
+.env.*
+!.env.example
+
+# ---------------------------------------------------------------- editors
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-workspace
+
+# ---------------------------------------------------------------- os
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ---------------------------------------------------------------- local tooling
+.claude/settings.local.json
+*.local

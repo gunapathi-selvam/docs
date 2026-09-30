@@ -1,0 +1,13 @@
+{
+  "name": "webgpu-particles",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A million particles in a damped-spring field, integrated by a WGSL compute shader.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node tests/run.mjs",
+    "bench": "node tests/bench.mjs"
+  }
+}

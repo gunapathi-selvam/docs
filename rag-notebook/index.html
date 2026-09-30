@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAG Notebook</title>
+<link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+
+<!-- Retrieval-only mode banner. role="status" so screen readers announce it.
+     Visible when ANTHROPIC_API_KEY is unset on the server. SPEC §3.5 -->
+<div id="mode-banner" role="status" class="mode-banner" hidden>
+  Claude synthesis unavailable. Retrieval-only mode active.
+</div>
+
+<!-- Drop zone. role="button" + tabindex so keyboard users can activate it.
+     Enter and Space are handled in main.js. A real <input> is behind it for
+     pointer users and assistive technology that expects a file picker. SPEC §11 -->
+<main id="drop-zone" role="button" tabindex="0" aria-label="Drop markdown or text files here, or press Enter to choose files" class="drop-zone">
+  <input id="file-input" type="file" accept=".md,.txt,.markdown" multiple hidden>
+
+  <div class="drop-prompt" aria-hidden="true">
+    <p>Drop markdown or text files here</p>
+    <p class="dim">or press Enter to choose files</p>
+  </div>
+
+  <!-- Drag-over state announced through aria-live so it is not purely visual.
+       SPEC §11 -->
+  <div id="drag-status" aria-live="polite" class="sr-only"></div>
+</main>
+
+<!-- Corpus list: one <li> per loaded document with a remove button. SPEC §11 -->
+<section id="corpus-section" class="corpus-section" hidden aria-label="Loaded documents">
+  <h2 class="section-heading">Documents</h2>
+  <ul id="corpus-list" class="corpus-list" role="list"></ul>
+</section>
+
+<!-- Query area -->
+<section class="query-section" aria-label="Ask a question">
+  <label for="query-input" class="query-label">Question</label>
+  <div class="query-row">
+    <input id="query-input" type="text" class="query-input"
+           placeholder="Ask something about your documents"
+           aria-label="Question">
+    <button id="ask-btn" type="button" class="ask-btn">Ask</button>
+  </div>
+</section>
+
+<!-- Answer area -->
+<section class="answer-section" aria-label="Answer">
+
+  <!-- Citation integrity warning. Hidden until a non-ok citation is found. SPEC §9.3 -->
+  <div id="citation-warning" class="citation-warning" role="alert" hidden></div>
+
+  <!-- Answer text. aria-live="polite" so screen readers hear streamed updates.
+       Updates are sentence-sized flushes, not per-token, to stay usable. SPEC §11 -->
+  <div id="answer-pane" class="answer-pane" aria-live="polite" aria-label="Answer"></div>
+
+  <!-- Extended thinking summary (optional, appears when Claude returns one). -->
+  <details id="thinking-block" class="thinking-block" hidden>
+    <summary>Thinking</summary>
+    <div class="thinking-content"></div>
+  </details>
+
+</section>
+
+<!-- Diagnostics panel: backend, corpus size, cache hits, scan timing. SPEC §6.2, §8.3 -->
+<aside id="diag-panel" class="diag-panel" aria-label="Diagnostics" hidden>
+  <h2 class="section-heading">Diagnostics</h2>
+  <dl class="readout">
+    <dt>Backend</dt><dd id="d-backend">—</dd>
+    <dt>Chunks</dt><dd id="d-chunks">—</dd>
+    <dt>Scan</dt><dd id="d-scan">—</dd>
+    <dt>Cache read tokens</dt><dd id="d-cache">—</dd>
+    <dt>Storage</dt><dd id="d-storage">—</dd>
+  </dl>
+</aside>
+
+<script type="module" src="src/js/main.js"></script>
+</body>
+</html>

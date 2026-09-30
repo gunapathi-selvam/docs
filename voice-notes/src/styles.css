@@ -1,0 +1,454 @@
+:root {
+  --bg: #0d0f14;
+  --bg-panel: #13161d;
+  --bg-hover: #1a1e29;
+  --ink: #e2e6f0;
+  --dim: #7e8799;
+  --line: #1e2334;
+  --accent: #6ea8ff;
+  --accent-dim: #3d6fcc;
+  --warn: #ffb4a2;
+  --seam: #4a4060;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font: 14px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* ---------------------------------------------------------------- focus rings
+   Never suppress focus without a replacement. SPEC §14.5 */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* ---------------------------------------------------------------- banner */
+.banner {
+  padding: 0.6rem 1rem;
+  background: #2a1a0e;
+  border-bottom: 1px solid #7a3a18;
+  color: var(--warn);
+  font-size: 0.85rem;
+}
+.banner code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  background: rgba(255,255,255,0.08);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+
+/* ---------------------------------------------------------------- record bar */
+.record-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.record-btn {
+  padding: 0.45rem 1.1rem;
+  background: #c0392b;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  min-width: 5rem;
+}
+.record-btn[aria-pressed="true"] {
+  background: #922b21;
+  animation: pulse-record 1.2s ease-in-out infinite;
+}
+.record-btn:hover { background: #a93226; }
+
+@keyframes pulse-record {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.5); }
+  50%       { box-shadow: 0 0 0 6px rgba(192, 57, 43, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .record-btn[aria-pressed="true"] { animation: none; }
+}
+
+.level-meter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  max-width: 220px;
+}
+.level-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.level-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.06s linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  .level-fill { transition: none; }
+}
+.level-pct { font-size: 0.75rem; color: var(--dim); min-width: 3rem; }
+
+.record-time { font-variant-numeric: tabular-nums; color: var(--dim); font-size: 0.9rem; }
+
+/* ---------------------------------------------------------------- model panel */
+.model-panel {
+  padding: 0.6rem 1rem;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--line);
+  font-size: 0.85rem;
+}
+.model-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.model-hint { color: var(--dim); }
+
+.progress-wrap {
+  flex: 1;
+  max-width: 240px;
+  height: 8px;
+  background: var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill { transition: none; }
+}
+
+/* ---------------------------------------------------------------- diagnostics */
+.diagnostics {
+  font-size: 0.8rem;
+  color: var(--dim);
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.diagnostics summary {
+  padding: 0.4rem 0;
+  cursor: pointer;
+  user-select: none;
+}
+.readout {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.15rem 1rem;
+  margin: 0.4rem 0 0.6rem;
+}
+.readout dt { color: var(--dim); }
+.readout dd { margin: 0; color: var(--ink); }
+
+/* ---------------------------------------------------------------- main layout */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  min-height: calc(100vh - 120px);
+}
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.pane {
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.pane:last-child { border-right: none; }
+
+.pane-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.pane-header h2 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--dim);
+}
+.pane-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* ---------------------------------------------------------------- transcript */
+.transcript-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+.transcript-empty {
+  padding: 1rem;
+  color: var(--dim);
+  font-style: italic;
+  margin: 0;
+}
+
+.transcript-row {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.3rem 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+  margin: 0 0.25rem;
+  transition: background 0.1s;
+}
+.transcript-row:hover { background: var(--bg-hover); }
+.transcript-row[aria-current="true"] {
+  background: rgba(110, 168, 255, 0.12);
+}
+.transcript-ts {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8rem;
+  color: var(--accent);
+  white-space: nowrap;
+  padding-top: 0.1em;
+  min-width: 2.8rem;
+}
+.transcript-text { flex: 1; }
+
+.seam-rule {
+  border: none;
+  border-top: 1px solid var(--seam);
+  margin: 0.4rem 1rem;
+  position: relative;
+}
+.seam-rule::after {
+  content: attr(title);
+  position: absolute;
+  left: 0;
+  top: -0.6em;
+  font-size: 0.7rem;
+  color: var(--seam);
+  background: var(--bg);
+  padding: 0 0.3em;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- summary pane */
+.summary-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1rem;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.summary-controls label { color: var(--dim); font-size: 0.85rem; }
+.summary-controls select {
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+/* Confirmation affordance. SPEC §14.4 */
+.confirm-panel {
+  padding: 1rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-panel);
+}
+.confirm-label { margin: 0 0 0.5rem; font-weight: 600; }
+.confirm-stats {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.2rem 1rem;
+  font-size: 0.85rem;
+  margin: 0 0 0.6rem;
+}
+.confirm-stats dt { color: var(--dim); }
+.confirm-stats dd { margin: 0; }
+.confirm-privacy {
+  font-size: 0.85rem;
+  color: var(--dim);
+  margin: 0 0 0.6rem;
+  font-style: italic;
+}
+.confirm-preview-wrap { font-size: 0.8rem; margin-bottom: 0.75rem; }
+.confirm-preview {
+  max-height: 160px;
+  overflow: auto;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.5rem;
+  margin: 0.3rem 0 0;
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.confirm-actions { display: flex; gap: 0.5rem; }
+
+.summary-loading {
+  padding: 1rem;
+  color: var(--dim);
+  font-style: italic;
+}
+.summary-content { padding: 1rem; overflow-y: auto; }
+.summary-title { margin: 0 0 1rem; font-size: 1rem; }
+.summary-content h4 {
+  margin: 0.8rem 0 0.3rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--dim);
+}
+.summary-list { list-style: none; padding: 0; margin: 0; }
+.summary-list li { margin-bottom: 0.25rem; }
+
+/* Summary items with a click target. Lines with anchored:false get no button. */
+.summary-item-btn {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.summary-item-btn:hover { background: var(--bg-hover); }
+.summary-item-unanchored {
+  padding: 0.3rem 0.5rem;
+  color: var(--dim);
+}
+
+.summary-item-ts {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8rem;
+  color: var(--accent-dim);
+  white-space: nowrap;
+  min-width: 2.8rem;
+}
+.summary-item-owner {
+  font-size: 0.8rem;
+  color: var(--dim);
+  margin-left: 0.3em;
+}
+
+.summary-error {
+  padding: 1rem;
+  color: var(--warn);
+}
+
+/* ---------------------------------------------------------------- buttons */
+.btn-primary {
+  padding: 0.4rem 0.9rem;
+  background: var(--accent);
+  color: #0d0f14;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.btn-primary:hover { background: #4a8cf5; }
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  padding: 0.4rem 0.9rem;
+  background: var(--bg-hover);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.btn-secondary:hover { background: #232840; }
+
+.btn-icon {
+  padding: 0.3rem 0.6rem;
+  background: var(--bg-hover);
+  color: var(--dim);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.btn-icon:hover { color: var(--ink); }
+
+/* ---------------------------------------------------------------- search */
+#transcript-search {
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  width: 140px;
+}
+#transcript-search:focus-visible { outline: 2px solid var(--accent); }
+
+/* ---------------------------------------------------------------- prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .transcript-row,
+  .summary-item-btn,
+  .pane          { transition: none; }
+}
+
+/* ---------------------------------------------------------------- hidden fix
+   The UA stylesheet hides [hidden] with `display: none`, but the overlays,
+   banners and conditional panes above all set an explicit `display`, and a
+   class selector outranks the UA attribute rule. Without this, every element
+   marked hidden in index.html renders anyway — loading, success and error
+   states stack on top of each other.
+
+   Nothing in the test suite can catch this: the fake DOM tracks .hidden as a
+   plain property and has no CSS cascade. It only shows up in a browser. */
+[hidden] { display: none !important; }

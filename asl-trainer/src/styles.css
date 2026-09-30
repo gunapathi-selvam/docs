@@ -1,0 +1,317 @@
+:root {
+  --bg: #05060a;
+  --ink: #e8ecf4;
+  --dim: #8b93a7;
+  --line: #1d2333;
+  --accent: #6ea8ff;
+  --warn: #ffb4a2;
+  --danger: #f28b82;
+  --bar-fill: #6ea8ff;
+  --bar-drain: #2d364d;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------------- camera */
+.camera-wrap {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.camera-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scaleX(-1);
+  opacity: 0.55;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------ failure page */
+.failure {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 1rem;
+  padding: clamp(1.5rem, 6vw, 6rem);
+  background: var(--bg);
+  max-width: 60ch;
+}
+
+.failure h1 {
+  margin: 0;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-weight: 600;
+  color: var(--warn);
+}
+
+.failure p { margin: 0; color: var(--dim); }
+
+/* ------------------------------------------------------------------ intro */
+.intro {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  padding: 2rem;
+  background: radial-gradient(60% 60% at 50% 45%, #0b1020 0%, var(--bg) 100%);
+}
+
+.intro h1 { margin: 0; font-size: clamp(1.6rem, 5vw, 2.4rem); font-weight: 600; }
+.intro p { margin: 0; color: var(--dim); max-width: 50ch; }
+
+/* ----------------------------------------------------------------- buttons */
+button {
+  font: inherit;
+  color: var(--ink);
+  background: #131829;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+button:hover { border-color: #2d364d; }
+button.secondary { color: var(--dim); font-size: 12px; }
+button.danger { border-color: #3d1a1a; color: var(--danger); font-size: 12px; }
+button.danger:hover { border-color: #5a2222; }
+
+:where(button, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------- quiz */
+.quiz {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Status chip: top-center */
+.status-chip {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.3rem 0.75rem;
+  background: rgba(8, 10, 18, 0.82);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--dim);
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Target word: large, centered */
+.target-word {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%);
+  font-size: clamp(2rem, 8vw, 5rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-align: center;
+  pointer-events: none;
+  /* each letter is a span, active letter is highlighted */
+}
+
+.target-word .letter { opacity: 0.35; }
+.target-word .letter.active { opacity: 1; color: var(--accent); }
+.target-word .letter.done { opacity: 0.6; }
+.target-word .letter.assisted { opacity: 0.6; text-decoration: underline; text-decoration-color: var(--warn); }
+
+/* Linking underline for adjacent identical letters. SPEC §9.5 */
+.target-word .letter.repeat-marker {
+  border-bottom: 2px solid var(--dim);
+  padding-bottom: 2px;
+}
+
+/* Latched letter: bottom-center, large */
+.latched-letter {
+  position: fixed;
+  bottom: 6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: clamp(3rem, 12vw, 8rem);
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+  pointer-events: none;
+  min-height: 1em;
+}
+
+/* Progress bar: thin strip below the latched letter. SPEC §9.5 */
+.progress-bar {
+  position: fixed;
+  bottom: 5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(20rem, 80vw);
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.progress-bar::after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: var(--pct, 0%);
+  background: var(--bar-fill);
+  border-radius: 2px;
+  transition: width 80ms linear, background-color 150ms;
+}
+
+.progress-bar.draining::after {
+  background: var(--bar-drain);
+  transition: width 80ms linear, background-color 150ms;
+}
+
+/* Score panel: top-right */
+.score-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(16rem, 90vw);
+  padding: 1rem;
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+  background: rgba(8, 10, 18, 0.82);
+  border-left: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  border-bottom-left-radius: 8px;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.readout {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  font-size: 12px;
+}
+
+.readout dt { color: var(--dim); }
+.readout dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Hint panel: bottom of screen */
+.hint {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(32rem, 90vw);
+  padding: 0.75rem 1rem;
+  background: rgba(8, 10, 18, 0.90);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+
+.hint h3 { margin: 0 0 0.25rem; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--dim); }
+.hint p { margin: 0; font-size: 13px; }
+
+/* --------------------------------------------------------- confusion matrix */
+.matrix-section {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: min(36rem, 50vw);
+  bottom: 0;
+  padding: 1rem;
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+  background: rgba(8, 10, 18, 0.82);
+  border-right: 1px solid var(--line);
+  backdrop-filter: blur(8px);
+  overflow-y: auto;
+}
+
+.matrix-section h2 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.matrix-section p.dim { margin: 0; font-size: 11px; color: var(--dim); }
+
+.confusion-canvas {
+  width: 100%;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  display: block;
+}
+
+.matrix-table { font-size: 9px; overflow: auto; max-height: 40vh; }
+.matrix-table table { border-collapse: collapse; }
+.matrix-table td, .matrix-table th {
+  border: 1px solid var(--line);
+  padding: 1px 3px;
+  text-align: center;
+  min-width: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.matrix-table th { color: var(--dim); font-weight: 400; }
+
+/* ------------------------------------------------------------------ shared */
+.dim { color: var(--dim); }
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar::after { transition: none !important; }
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ---------------------------------------------------------------- hidden fix
+   The UA stylesheet hides [hidden] with `display: none`, but the overlays,
+   banners and conditional panes above all set an explicit `display`, and a
+   class selector outranks the UA attribute rule. Without this, every element
+   marked hidden in index.html renders anyway — loading, success and error
+   states stack on top of each other.
+
+   Nothing in the test suite can catch this: the fake DOM tracks .hidden as a
+   plain property and has no CSS cascade. It only shows up in a browser. */
+[hidden] { display: none !important; }

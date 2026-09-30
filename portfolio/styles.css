@@ -260,6 +260,13 @@ section {
   transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
 }
 
+/* Safety net: <html> gets .no-gsap when the GSAP CDN fails, so reveal-on-scroll
+   content is never left permanently invisible. */
+html.no-gsap [data-reveal] {
+  opacity: 1;
+  transform: none;
+}
+
 /* ─── HERO ─── */
 #hero {
   min-height: 100vh;

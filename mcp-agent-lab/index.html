@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCP Agent Lab</title>
+<link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+
+<!-- Replay banner — persistent while in replay mode. Not a toast. SPEC §8.1 -->
+<div id="replay-banner" class="replay-banner" hidden aria-live="assertive">
+  <span id="replay-label" class="replay-label">Replay mode</span>
+  <span id="replay-reason" class="replay-reason"></span>
+  <div id="fixture-list" class="fixture-list" role="group" aria-label="Choose a fixture"></div>
+</div>
+
+<!-- Failure region — every error path renders here, never silently. SPEC §11 -->
+<section id="failure" class="failure" hidden aria-live="assertive">
+  <h1 id="failure-title"></h1>
+  <p id="failure-body"></p>
+  <pre id="failure-detail" class="mono-block" hidden></pre>
+</section>
+
+<div class="layout">
+
+  <!-- Left: prompt + timeline -->
+  <main class="main-col">
+
+    <header class="prompt-area">
+      <label for="prompt" class="sr-only">Prompt</label>
+      <textarea
+        id="prompt"
+        class="prompt-input"
+        placeholder="Ask something that requires reading files..."
+        rows="3"
+        aria-label="Prompt"
+      ></textarea>
+
+      <div class="prompt-controls">
+        <div class="selectors">
+          <label for="effort-select">Effort</label>
+          <select id="effort-select" aria-label="Effort level">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+
+          <label for="tool-choice-select">Tools</label>
+          <select id="tool-choice-select" aria-label="Tool choice">
+            <option value="auto" selected>Auto</option>
+            <option value="none">None</option>
+          </select>
+        </div>
+
+        <div class="run-controls">
+          <button id="run-btn" type="button">Run</button>
+          <button id="stop-btn" type="button" disabled>Stop</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Timeline. Append-only ordered list, one card per event. SPEC §7, §9.1 -->
+    <section aria-label="Agent timeline">
+      <ol id="timeline" class="timeline" role="list" aria-label="Timeline events"></ol>
+      <p id="timeline-empty" class="timeline-empty">Run a prompt to see the agent loop here.</p>
+    </section>
+
+  </main>
+
+  <!-- Right: detail pane + tool inventory + readout -->
+  <aside class="side-col" aria-label="Details and diagnostics">
+
+    <!-- Raw JSON detail pane for the selected event -->
+    <section class="panel-section" id="detail-section" hidden>
+      <h2 class="panel-heading">Event detail</h2>
+      <div class="detail-controls">
+        <button id="copy-btn" type="button" aria-label="Copy event JSON">Copy</button>
+      </div>
+      <pre id="detail-pane" class="mono-block detail-pane" aria-label="Raw JSON of selected event"></pre>
+    </section>
+
+    <!-- Token / cost readout. aria-live="polite" so it does not interrupt. -->
+    <section class="panel-section">
+      <h2 class="panel-heading">Run stats</h2>
+      <dl class="readout" aria-live="polite" aria-label="Run statistics">
+        <dt>Turns</dt><dd id="r-turns">—</dd>
+        <dt>Tool calls</dt><dd id="r-tool-calls">—</dd>
+        <dt>Input tokens</dt><dd id="r-input-tokens">—</dd>
+        <dt>Output tokens</dt><dd id="r-output-tokens">—</dd>
+        <dt>Cache read</dt><dd id="r-cache-read">—</dd>
+        <dt>Cache write</dt><dd id="r-cache-write">—</dd>
+        <dt>Est. cost</dt><dd id="r-cost">—</dd>
+        <dt>Elapsed</dt><dd id="r-elapsed">—</dd>
+      </dl>
+    </section>
+
+    <!-- Tool inventory from tools/list. Shows strict/degraded badge. -->
+    <section class="panel-section">
+      <h2 class="panel-heading">Tools</h2>
+      <ul id="tool-inventory" class="tool-inventory" aria-label="Available tools" aria-live="polite">
+        <li class="tool-empty">Loading tools...</li>
+      </ul>
+    </section>
+
+  </aside>
+
+</div>
+
+<script type="module" src="src/js/main.js"></script>
+</body>
+</html>
