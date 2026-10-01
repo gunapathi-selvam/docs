@@ -348,6 +348,8 @@ export async function boot(doc = document, nav = navigator) {
   let handEnabled = false;
   let handTracker = null;
   let airPtr = null;
+  // Last cursor position while pinched, for the orbit delta. null when open.
+  let handPrev = null;
   const handCursor = doc.getElementById('hand-cursor');
   const handPreview = doc.getElementById('hand-preview');
   const reachFill = doc.getElementById('reach-fill');
@@ -508,7 +510,14 @@ export async function boot(doc = document, nav = navigator) {
         // Update the shared pointer so the existing grab-point code picks it up.
         pointer = { x: ap.x, y: ap.y };
 
-        // Translate air-pointer events to grab state (mirrors the mouse handlers).
+        // Three gestures that compose rather than exclude each other:
+        //   move an open hand      -> rotate
+        //   pinch and hold still   -> grab
+        //   pinch and move         -> both at once
+        //
+        // Rotation is unconditional on hand movement, which works here only
+        // because there is nothing on screen to point at — the cursor exists to
+        // place the grab, so there is no need to move it without rotating.
         for (const ev of ap.events) {
           if (ev.type === 'down') {
             state.grabForce = 9;
@@ -517,6 +526,20 @@ export async function boot(doc = document, nav = navigator) {
             state.grabForce = 0;
             state.grabRadius = 0;
           }
+        }
+
+        if (handPrev) {
+          const dx = ap.x - handPrev.x;
+          const dy = ap.y - handPrev.y;
+          // Deadzone: landmark jitter is a pixel or two every frame even for a
+          // perfectly still hand, and without this the camera drifts
+          // continuously while the user is doing nothing.
+          if (Math.hypot(dx, dy) > 1.5) {
+            orbit(state, dx, dy, canvas.clientHeight || 800);
+            handPrev = { x: ap.x, y: ap.y };
+          }
+        } else {
+          handPrev = { x: ap.x, y: ap.y };
         }
 
         // Move on-screen cursor marker.
@@ -546,6 +569,14 @@ export async function boot(doc = document, nav = navigator) {
         drawSkeleton(handPreview, hands[0].landmarks, handTracker.video);
       } else {
         if (handCursor) handCursor.hidden = true;
+        // Hand left the frame. Drop the anchor so re-entering elsewhere does
+        // not orbit by the whole gap between where it vanished and reappeared,
+        // and release any grab that was held when tracking was lost.
+        handPrev = null;
+        if (burstUntil < now) {
+          state.grabForce = 0;
+          state.grabRadius = 0;
+        }
       }
     }
 
