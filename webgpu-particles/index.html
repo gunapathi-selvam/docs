@@ -70,7 +70,7 @@
     <h2>Keys</h2>
     <p class="legend">
       <kbd>1</kbd>–<kbd>8</kbd> shape · drag orbit · scroll dolly ·
-      hold left button to grab · <kbd>Space</kbd> burst ·
+      hold left button or pinch to grab · <kbd>Space</kbd> burst ·
       <kbd>G</kbd> palette · <kbd>R</kbd> reset camera
     </p>
   </div>
@@ -86,18 +86,18 @@
          that value the tap simply never fires, with no other symptom. Showing
          the number turns an invisible failure into an obvious one. -->
     <dl class="readout" id="hand-readout" hidden>
-      <dt>Reach now</dt><dd id="h-reach">—</dd>
-      <dt>Observed range</dt><dd id="h-range">—</dd>
+      <dt>Pinch now</dt><dd id="h-reach">—</dd>
+      <dt>Pinch range</dt><dd id="h-range">—</dd>
       <dt>State</dt><dd id="h-state">—</dd>
     </dl>
 
     <label for="press-reach" id="press-reach-label" hidden>
-      Tap threshold <output id="press-reach-out">0.60</output>
+      Pinch threshold <output id="press-reach-out">0.60</output>
     </label>
     <input id="press-reach" type="range" min="0.15" max="0.95" step="0.01" value="0.60" hidden>
     <p class="legend" id="press-reach-hint" hidden>
-      Poke your index finger forward and watch <strong>Reach now</strong>.
-      Set the threshold just below the peak value you can reach comfortably.
+      Pinch your thumb and index finger together and watch <strong>Pinch now</strong>.
+      Set the threshold just below the peak value a comfortable pinch gives you.
     </p>
   </div>
 

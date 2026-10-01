@@ -76,10 +76,11 @@ export function forwardReach(lm) {
 export function pinchCloseness(lm) {
   const span = handSpan(lm);
   if (!(span > 0)) return 0;
-  const dx = lm[4].x - lm[8].x;
-  const dy = lm[4].y - lm[8].y;
-  const dz = (lm[4].z ?? 0) - (lm[8].z ?? 0);
-  const gap = Math.hypot(dx, dy, dz) / span;
+  // Deliberately 2D. MediaPipe's z is noisy and its scale varies with camera
+  // FOV — that unreliability is exactly what made forward-reach unusable. A
+  // pinch is a visually closing gap, so x/y alone is both sufficient and far
+  // more stable. handSpan is 2D as well, so the ratio is consistent.
+  const gap = Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y) / span;
   return Math.max(0, 1 - gap);
 }
 

@@ -314,14 +314,15 @@ section('retuning takes effect on the running pointer');
 // The whole point of the slider is that a reach the old threshold ignored
 // starts registering without a reload.
 {
-  const ptr = createAirPointer({ pressReach: 5, releaseReach: 3, dwellMs: 0 });
+  // Pinch closeness is bounded at 1.0, so thresholds live on a 0..1 scale.
+  const ptr = createAirPointer({ pressReach: 0.95, releaseReach: 0.6, dwellMs: 0 });
 
-  const before = ptr.update(makeLm({ reach: 1.2 }), 0, 1000, 1000);
-  eq('reach below the high threshold does not press', before.state, 'idle');
+  const before = ptr.update(makeLm({ reach: 0.7 }), 0, 1000, 1000);
+  eq('a pinch below the threshold does not press', before.state, 'idle');
 
-  ptr.setPressReach(1.0);
-  const after = ptr.update(makeLm({ reach: 1.2 }), 50, 1000, 1000);
-  eq('the same reach presses once the threshold is lowered', after.state, 'pressed');
+  ptr.setPressReach(0.5);
+  const after = ptr.update(makeLm({ reach: 0.7 }), 50, 1000, 1000);
+  eq('the same pinch presses once the threshold is lowered', after.state, 'pressed');
   ok('and it emitted a down event', after.events.some((e) => e.type === 'down'));
 }
 
